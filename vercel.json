@@ -24,7 +24,7 @@
       ]
     },
     {
-      "source": "/data.js",
+      "source": "/(data|market-data).js",
       "headers": [
         {
           "key": "Cache-Control",

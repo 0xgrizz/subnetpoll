@@ -1,5 +1,5 @@
 {
-  "name": "subnetpoll",
+  "name": "thumbsflow",
   "version": "1.0.0",
   "private": true,
   "description": "Static Bittensor subnet poll dashboard.",
