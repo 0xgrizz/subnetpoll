@@ -1,6 +1,7 @@
 const data = window.REACTION_DATA || {};
 const marketData = window.SUBNET_MARKET_DATA || {};
 const UI_LOCALE = "en-US";
+const MAX_DECIMAL_DIGITS = 2;
 const state = {
   filter: "all",
   signalFilter: "all",
@@ -55,18 +56,20 @@ function formatNumber(value) {
 }
 
 function formatPercent(value, digits = 0) {
+  const precision = Math.min(digits, MAX_DECIMAL_DIGITS);
   return `${new Intl.NumberFormat(UI_LOCALE, {
-    maximumFractionDigits: digits,
-    minimumFractionDigits: digits
+    maximumFractionDigits: precision,
+    minimumFractionDigits: precision
   }).format(value)}%`;
 }
 
 function formatDecimal(value, digits = 2) {
   if (!Number.isFinite(value)) return "n/a";
+  const precision = Math.min(digits, MAX_DECIMAL_DIGITS);
 
   return new Intl.NumberFormat(UI_LOCALE, {
-    maximumFractionDigits: digits,
-    minimumFractionDigits: digits
+    maximumFractionDigits: precision,
+    minimumFractionDigits: precision
   }).format(value);
 }
 
