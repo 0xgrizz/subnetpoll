@@ -1,5 +1,6 @@
 const data = window.REACTION_DATA || {};
 const marketData = window.SUBNET_MARKET_DATA || {};
+const UI_LOCALE = "en-US";
 const state = {
   filter: "all",
   signalFilter: "all",
@@ -50,11 +51,11 @@ function escapeHtml(value) {
 }
 
 function formatNumber(value) {
-  return new Intl.NumberFormat().format(value);
+  return new Intl.NumberFormat(UI_LOCALE).format(value);
 }
 
 function formatPercent(value, digits = 0) {
-  return `${new Intl.NumberFormat(undefined, {
+  return `${new Intl.NumberFormat(UI_LOCALE, {
     maximumFractionDigits: digits,
     minimumFractionDigits: digits
   }).format(value)}%`;
@@ -63,7 +64,7 @@ function formatPercent(value, digits = 0) {
 function formatDecimal(value, digits = 2) {
   if (!Number.isFinite(value)) return "n/a";
 
-  return new Intl.NumberFormat(undefined, {
+  return new Intl.NumberFormat(UI_LOCALE, {
     maximumFractionDigits: digits,
     minimumFractionDigits: digits
   }).format(value);
@@ -92,7 +93,7 @@ function formatDate(value) {
   if (!value) return "Not updated yet";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return "Not updated yet";
-  return `Updated ${new Intl.DateTimeFormat(undefined, {
+  return `Updated ${new Intl.DateTimeFormat(UI_LOCALE, {
     dateStyle: "medium",
     timeStyle: "short"
   }).format(date)}`;
@@ -1375,7 +1376,7 @@ function renderSource() {
   const marketUpdatedAt = marketData.updatedAt ? new Date(marketData.updatedAt) : null;
   const hasMarketDate = marketUpdatedAt && !Number.isNaN(marketUpdatedAt.getTime());
   const updatedAtText = hasMarketDate
-    ? `${formatDate(data.updatedAt)} · Market ${new Intl.DateTimeFormat(undefined, {
+    ? `${formatDate(data.updatedAt)} · Market ${new Intl.DateTimeFormat(UI_LOCALE, {
       dateStyle: "medium",
       timeStyle: "short"
     }).format(marketUpdatedAt)}`
