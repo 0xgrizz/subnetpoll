@@ -13,21 +13,21 @@
   <rect x="54" y="54" width="1092" height="522" rx="16" fill="url(#panel)" stroke="#222c3e" stroke-width="2"/>
   <text x="90" y="135" font-family="Inter, Arial, sans-serif" font-size="30" font-weight="900" fill="#8c96a8">BITTENSOR DISCORD POLL</text>
   <text x="90" y="220" font-family="Inter, Arial, sans-serif" font-size="86" font-weight="950" fill="#f7fbff">ThumbsFlow.io</text>
-  <text x="92" y="275" font-family="Inter, Arial, sans-serif" font-size="31" font-weight="800" fill="#8c96a8">Global subnet consensus, thumbs flow, and metagraph signals.</text>
+  <text x="92" y="275" font-family="Inter, Arial, sans-serif" font-size="31" font-weight="800" fill="#8c96a8">Global subnet consensus, 1M flow, and metagraph signals.</text>
   <g transform="translate(88 342)">
     <rect width="250" height="112" rx="12" fill="#070b12" stroke="#222c3e"/>
     <text x="24" y="44" font-family="Inter, Arial, sans-serif" font-size="22" font-weight="900" fill="#8c96a8">LEGIT THUMBS</text>
-    <text x="24" y="89" font-family="Inter, Arial, sans-serif" font-size="45" font-weight="950" fill="#42f36f">1,089</text>
+    <text x="24" y="89" font-family="Inter, Arial, sans-serif" font-size="45" font-weight="950" fill="#42f36f">1,332</text>
   </g>
   <g transform="translate(362 342)">
     <rect width="250" height="112" rx="12" fill="#070b12" stroke="#222c3e"/>
     <text x="24" y="44" font-family="Inter, Arial, sans-serif" font-size="22" font-weight="900" fill="#8c96a8">BUNK THUMBS</text>
-    <text x="24" y="89" font-family="Inter, Arial, sans-serif" font-size="45" font-weight="950" fill="#ff465b">586</text>
+    <text x="24" y="89" font-family="Inter, Arial, sans-serif" font-size="45" font-weight="950" fill="#ff465b">697</text>
   </g>
   <g transform="translate(636 342)">
     <rect width="250" height="112" rx="12" fill="#070b12" stroke="#222c3e"/>
     <text x="24" y="44" font-family="Inter, Arial, sans-serif" font-size="22" font-weight="900" fill="#8c96a8">NET SIGNAL</text>
-    <text x="24" y="89" font-family="Inter, Arial, sans-serif" font-size="45" font-weight="950" fill="#f7fbff">+503</text>
+    <text x="24" y="89" font-family="Inter, Arial, sans-serif" font-size="45" font-weight="950" fill="#f7fbff">+635</text>
   </g>
   <g transform="translate(916 122)">
     <circle cx="48" cy="64" r="48" fill="#42f36f"/>

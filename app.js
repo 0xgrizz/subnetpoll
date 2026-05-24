@@ -2,10 +2,13 @@ const data = window.REACTION_DATA || {};
 const marketData = window.SUBNET_MARKET_DATA || {};
 const state = {
   filter: "all",
+  signalFilter: "all",
   marketFilter: "all",
   search: "",
   sort: "legit-ratio",
   sizeBy: "votes",
+  axisX: "support",
+  axisY: "tao-flow",
   selectedKey: null
 };
 
@@ -20,11 +23,16 @@ const auditCardEl = document.querySelector("#auditCard");
 const topLegitListEl = document.querySelector("#topLegitList");
 const topBunkListEl = document.querySelector("#topBunkList");
 const contestedListEl = document.querySelector("#contestedList");
+const scatterPlotEl = document.querySelector("#scatterPlot");
+const analyticsStatsEl = document.querySelector("#analyticsStats");
+const analyticsSummaryEl = document.querySelector("#analyticsSummary");
 const searchInput = document.querySelector("#searchInput");
 const filterButtons = Array.from(document.querySelectorAll("[data-filter]"));
+const signalFilterButtons = Array.from(document.querySelectorAll("[data-signal-filter]"));
 const marketFilterButtons = Array.from(document.querySelectorAll("[data-market-filter]"));
 const sortButtons = Array.from(document.querySelectorAll("[data-sort]"));
 const sizeButtons = Array.from(document.querySelectorAll("[data-size-by]"));
+const axisButtons = Array.from(document.querySelectorAll("[data-axis][data-metric]"));
 let bubblePhysicsFrame = 0;
 let bubblePhysicsGeneration = 0;
 let lastBubbleLayoutSignature = "";
@@ -176,6 +184,7 @@ function normalizeItem(item, index) {
         !isThumbsUp(reaction.emoji) &&
         !isThumbsDown(reaction.emoji);
     });
+  const hypeScore = extraReactions.reduce((sum, reaction) => sum + reaction.count, 0);
   const key = item.messageId || item.messageUrl || item.channelId || `${index}`;
   const subnetNumber = getSubnetNumber(item.subnet || item.channelName);
   const market = marketByNetuid.get(subnetNumber) || null;
@@ -196,6 +205,7 @@ function normalizeItem(item, index) {
     status,
     countsKnown,
     extraReactions,
+    hypeScore,
     market,
     hasMarket: Boolean(market),
     taoFlow: market?.taoFlow ?? 0,
@@ -263,7 +273,7 @@ function getCoVeScore(item) {
 
 function formatSignal(item) {
   const signal = getSignalPercent(item);
-  if (!item.countsKnown || item.total === 0) return "0%";
+  if (!item.countsKnown || item.total === 0) return "No thumbs";
   if (signal > 0) return `+${signal}%`;
   return `${signal}%`;
 }
@@ -298,6 +308,12 @@ function getMarketSummary() {
   };
 }
 
+function getHypeTone(item) {
+  if (item.hypeScore >= 20) return "high";
+  if (item.hypeScore > 0) return "some";
+  return "flat";
+}
+
 function getTone(item) {
   if (item.status === "legit") return "legit";
   if (item.status === "bunk") return "bunk";
@@ -329,6 +345,7 @@ function getTickerName(item) {
 function getSizeMetric(item) {
   if (state.sizeBy === "signal") return Math.abs(item.net);
   if (state.sizeBy === "tao-flow") return Math.abs(item.taoFlow);
+  if (state.sizeBy === "hype") return item.hypeScore;
   return item.total;
 }
 
@@ -561,9 +578,11 @@ function renderMiniList(target, list, mode) {
 function renderIntelligence() {
   const summary = getGlobalSummary();
   const marketSummary = getMarketSummary();
-  const coverage = items.length ? summary.votedItems.length / items.length * 100 : 0;
   const statusTotal = Math.max(items.length, 1);
   const marketCoverage = items.length ? marketSummary.marketItems.length / items.length * 100 : 0;
+  const verifiedLinks = Number(data.scrapeMeta?.verifiedLinks || items.length);
+  const missingLinks = Number(data.scrapeMeta?.unknownLinks || 0);
+  const targetCoverage = items.length ? verifiedLinks / items.length * 100 : 0;
   const burnHighThreshold = getQuantile(marketSummary.burnValues, 0.75);
   const highBurnCount = marketSummary.marketItems
     .filter((item) => Number.isFinite(item.burnEmissionPct) && item.burnEmissionPct >= burnHighThreshold)
@@ -628,7 +647,7 @@ function renderIntelligence() {
         <span><b>${formatNumber(summary.averageVotes.toFixed(1))}</b> avg thumbs</span>
         <span><b>${formatNumber(summary.medianVotes)}</b> median thumbs</span>
         <span><b>${summary.contested}</b> contested</span>
-        <span><b>${formatPercent(marketSummary.averageBurnEmissionPct, 1)}</b> avg burn share</span>
+        <span><b>${formatPercent(marketSummary.averageBurnEmissionPct, 1)}</b> avg burn emission</span>
       </div>
     `;
   }
@@ -636,16 +655,18 @@ function renderIntelligence() {
   if (auditCardEl) {
     auditCardEl.innerHTML = `
       <div class="card-headline">
-        <span>CoVe audit</span>
-        <strong>${formatPercent(coverage, 1)} coverage</strong>
+        <span>Data audit</span>
+        <strong>${formatPercent(targetCoverage, 0)} target verified</strong>
       </div>
       <div class="audit-grid">
         <span><b>${formatNumber(items.length)}</b> exact message links</span>
-        <span><b>${formatNumber(summary.votedItems.length)}</b> with thumbs</span>
+        <span><b>${formatNumber(verifiedLinks)}</b> target checked</span>
+        <span><b>${formatNumber(missingLinks)}</b> missing targets</span>
+        <span><b>${summary.statusCounts["no-votes"]}</b> true empty</span>
         <span><b>${formatPercent(marketCoverage, 0)}</b> metagraph match</span>
-        <span><b>${flowBlock}</b> TAO flow block</span>
-        <span><b>${formatSignedTao(marketSummary.netFlow, 3)}</b> net flow</span>
-        <span><b>${highBurnCount}</b> high burn-share</span>
+        <span><b>${flowBlock}</b> 1M EMA block</span>
+        <span><b>${formatSignedTao(marketSummary.netFlow, 3)}</b> net 1M EMA</span>
+        <span><b>${highBurnCount}</b> high burn-emission</span>
       </div>
       ${topCoVe ? `
         <button class="audit-focus ${getTone(topCoVe)}" type="button" data-key="${escapeHtml(topCoVe.key)}">
@@ -672,6 +693,7 @@ function applySort(list) {
     if (state.sort === "conviction") return getCoVeScore(b) - getCoVeScore(a) || b.total - a.total;
     if (state.sort === "tao-flow") return b.taoFlow - a.taoFlow || b.total - a.total;
     if (state.sort === "burn-emission") return getBurnEmissionValue(b) - getBurnEmissionValue(a) || b.total - a.total;
+    if (state.sort === "hype") return b.hypeScore - a.hypeScore || b.total - a.total;
     if (state.sort === "name") return a.subnet.localeCompare(b.subnet, undefined, { numeric: true });
     return getLegitScore(b) - getLegitScore(a) || b.total - a.total;
   });
@@ -692,6 +714,16 @@ function matchesMarketFilter(item) {
   return item.hasMarket;
 }
 
+function matchesSignalFilter(item) {
+  if (state.signalFilter === "all") return true;
+  if (state.signalFilter === "voted") return item.total > 0;
+  if (state.signalFilter === "active") return item.total >= 10;
+  if (state.signalFilter === "strong") return item.total >= 10 && (getLegitRatio(item) >= 0.75 || getBunkRatio(item) >= 0.75);
+  if (state.signalFilter === "contested") return item.total >= 10 && getLegitRatio(item) >= 0.35 && getLegitRatio(item) <= 0.65;
+  if (state.signalFilter === "hype") return item.hypeScore > 0;
+  return true;
+}
+
 function getVisibleItems() {
   const query = state.search.trim().toLowerCase();
 
@@ -700,10 +732,193 @@ function getVisibleItems() {
       item.subnet.toLowerCase().includes(query) ||
       item.channelName.toLowerCase().includes(query);
     const matchesFilter = state.filter === "all" || item.status === state.filter;
-    return matchesSearch && matchesFilter && matchesMarketFilter(item);
+    return matchesSearch && matchesFilter && matchesSignalFilter(item) && matchesMarketFilter(item);
   });
 
   return applySort(filtered);
+}
+
+const metricDefinitions = {
+  thumbs: {
+    label: "Thumbs",
+    value: (item) => item.total,
+    format: (value) => formatNumber(Math.round(value))
+  },
+  support: {
+    label: "Legit %",
+    value: (item) => item.total > 0 ? getLegitRatio(item) * 100 : null,
+    format: (value) => formatPercent(value, 1)
+  },
+  bunk: {
+    label: "Bunk %",
+    value: (item) => item.total > 0 ? getBunkRatio(item) * 100 : null,
+    format: (value) => formatPercent(value, 1)
+  },
+  net: {
+    label: "Net thumbs",
+    value: (item) => item.net,
+    format: (value) => value > 0 ? `+${formatNumber(Math.round(value))}` : formatNumber(Math.round(value))
+  },
+  hype: {
+    label: "Hype score",
+    value: (item) => item.hypeScore,
+    format: (value) => formatNumber(Math.round(value))
+  },
+  "tao-flow": {
+    label: "1M TAO flow",
+    value: (item) => item.hasMarket ? item.taoFlow : null,
+    format: (value) => formatSignedTao(value, 4)
+  },
+  "burn-emission": {
+    label: "Burn emission %",
+    value: (item) => Number.isFinite(item.burnEmissionPct) ? item.burnEmissionPct : null,
+    format: (value) => formatPercent(value, 1)
+  },
+  "burn-cost": {
+    label: "Burn cost",
+    value: (item) => item.hasMarket ? item.market.burnCost : null,
+    format: (value) => formatTao(value, 4)
+  }
+};
+
+function getMetricValue(item, metricKey) {
+  const definition = metricDefinitions[metricKey];
+  if (!definition) return null;
+  const value = definition.value(item);
+  return Number.isFinite(value) ? value : null;
+}
+
+function getPearson(points) {
+  if (points.length < 3) return null;
+  const meanX = points.reduce((sum, point) => sum + point.x, 0) / points.length;
+  const meanY = points.reduce((sum, point) => sum + point.y, 0) / points.length;
+  let numerator = 0;
+  let xVariance = 0;
+  let yVariance = 0;
+
+  points.forEach((point) => {
+    const dx = point.x - meanX;
+    const dy = point.y - meanY;
+    numerator += dx * dy;
+    xVariance += dx * dx;
+    yVariance += dy * dy;
+  });
+
+  const denominator = Math.sqrt(xVariance * yVariance);
+  return denominator ? numerator / denominator : null;
+}
+
+function getLinearFit(points) {
+  if (points.length < 2) return null;
+  const meanX = points.reduce((sum, point) => sum + point.x, 0) / points.length;
+  const meanY = points.reduce((sum, point) => sum + point.y, 0) / points.length;
+  let numerator = 0;
+  let denominator = 0;
+
+  points.forEach((point) => {
+    numerator += (point.x - meanX) * (point.y - meanY);
+    denominator += (point.x - meanX) ** 2;
+  });
+
+  if (!denominator) return null;
+  const slope = numerator / denominator;
+  return { slope, intercept: meanY - slope * meanX };
+}
+
+function renderAnalytics(sourceItems) {
+  if (!scatterPlotEl || !analyticsStatsEl || !analyticsSummaryEl) return;
+
+  const xDefinition = metricDefinitions[state.axisX] || metricDefinitions.support;
+  const yDefinition = metricDefinitions[state.axisY] || metricDefinitions["tao-flow"];
+  const points = sourceItems
+    .map((item) => ({
+      item,
+      x: getMetricValue(item, state.axisX),
+      y: getMetricValue(item, state.axisY)
+    }))
+    .filter((point) => point.x != null && point.y != null);
+
+  analyticsSummaryEl.textContent = `${xDefinition.label} vs ${yDefinition.label} across ${formatNumber(points.length)} visible subnets`;
+
+  if (points.length < 2) {
+    scatterPlotEl.innerHTML = `<p class="empty-state">Not enough visible subnets for this comparison.</p>`;
+    analyticsStatsEl.innerHTML = "";
+    return;
+  }
+
+  const xValues = points.map((point) => point.x);
+  const yValues = points.map((point) => point.y);
+  const minX = Math.min(...xValues);
+  const maxX = Math.max(...xValues);
+  const minY = Math.min(...yValues);
+  const maxY = Math.max(...yValues);
+  const xPad = (maxX - minX || 1) * 0.08;
+  const yPad = (maxY - minY || 1) * 0.12;
+  const xLow = minX - xPad;
+  const xHigh = maxX + xPad;
+  const yLow = minY - yPad;
+  const yHigh = maxY + yPad;
+  const plot = { left: 54, right: 972, top: 34, bottom: 506 };
+  const scaleX = (value) => plot.left + ((value - xLow) / (xHigh - xLow || 1)) * (plot.right - plot.left);
+  const scaleY = (value) => plot.bottom - ((value - yLow) / (yHigh - yLow || 1)) * (plot.bottom - plot.top);
+  const correlation = getPearson(points);
+  const fit = getLinearFit(points);
+  const line = fit ? {
+    x1: scaleX(xLow),
+    y1: clamp(scaleY(fit.slope * xLow + fit.intercept), plot.top, plot.bottom),
+    x2: scaleX(xHigh),
+    y2: clamp(scaleY(fit.slope * xHigh + fit.intercept), plot.top, plot.bottom)
+  } : null;
+  const flowMedian = getMedian(items.filter((item) => item.hasMarket).map((item) => item.taoFlow));
+  const burnMedian = getMedian(items.map((item) => item.burnEmissionPct).filter(Number.isFinite));
+  const highFlowLegit = sourceItems.filter((item) => item.taoFlow >= flowMedian && getLegitRatio(item) >= 0.6).length;
+  const highFlowBunk = sourceItems.filter((item) => item.taoFlow >= flowMedian && getBunkRatio(item) >= 0.6).length;
+  const highBurnBunk = sourceItems.filter((item) => Number.isFinite(item.burnEmissionPct) && item.burnEmissionPct >= burnMedian && getBunkRatio(item) >= 0.6).length;
+  const topHype = [...sourceItems].sort((a, b) => b.hypeScore - a.hypeScore || b.total - a.total)[0];
+  const rLabel = correlation == null ? "n/a" : correlation.toFixed(2);
+  const r2Label = correlation == null ? "n/a" : formatPercent(correlation * correlation * 100, 0);
+
+  scatterPlotEl.innerHTML = `
+    <svg class="scatter-svg" viewBox="0 0 1000 560" role="img" aria-label="${escapeHtml(xDefinition.label)} and ${escapeHtml(yDefinition.label)} correlation chart">
+      <g class="scatter-grid" aria-hidden="true">
+        ${[0, 0.25, 0.5, 0.75, 1].map((step) => `
+          <line x1="${plot.left}" x2="${plot.right}" y1="${plot.top + (plot.bottom - plot.top) * step}" y2="${plot.top + (plot.bottom - plot.top) * step}"></line>
+          <line y1="${plot.top}" y2="${plot.bottom}" x1="${plot.left + (plot.right - plot.left) * step}" x2="${plot.left + (plot.right - plot.left) * step}"></line>
+        `).join("")}
+      </g>
+      ${line ? `<line class="trend-line" x1="${line.x1}" y1="${line.y1}" x2="${line.x2}" y2="${line.y2}"></line>` : ""}
+      ${points.map((point) => {
+        const radius = Math.max(4.5, Math.min(13, Math.sqrt(point.item.total + 1) * 1.15));
+        return `
+          <circle
+            class="scatter-point ${getTone(point.item)}"
+            cx="${scaleX(point.x)}"
+            cy="${scaleY(point.y)}"
+            r="${radius}"
+          >
+            <title>${escapeHtml(`${getBubbleLabel(point.item)} ${getTickerName(point.item)} · ${xDefinition.label}: ${xDefinition.format(point.x)} · ${yDefinition.label}: ${yDefinition.format(point.y)} · Hype ${point.item.hypeScore}`)}</title>
+          </circle>
+        `;
+      }).join("")}
+      <text class="axis-label x-label" x="500" y="548">${escapeHtml(xDefinition.label)}</text>
+      <text class="axis-label y-label" x="18" y="282" transform="rotate(-90 18 282)">${escapeHtml(yDefinition.label)}</text>
+      <text class="axis-tick" x="${plot.left}" y="532">${escapeHtml(xDefinition.format(minX))}</text>
+      <text class="axis-tick end" x="${plot.right}" y="532">${escapeHtml(xDefinition.format(maxX))}</text>
+      <text class="axis-tick" x="46" y="${plot.bottom}">${escapeHtml(yDefinition.format(minY))}</text>
+      <text class="axis-tick" x="46" y="${plot.top + 4}">${escapeHtml(yDefinition.format(maxY))}</text>
+    </svg>
+  `;
+
+  analyticsStatsEl.innerHTML = `
+    <span><strong>${rLabel}</strong> Pearson r</span>
+    <span><strong>${r2Label}</strong> explained variance</span>
+    <span><strong>${formatNumber(points.length)}</strong> plotted subnets</span>
+    <span><strong>${highFlowLegit}</strong> high-flow legit</span>
+    <span><strong>${highFlowBunk}</strong> high-flow bunk</span>
+    <span><strong>${highBurnBunk}</strong> high-burn bunk</span>
+    <span><strong>${topHype ? `${getBubbleLabel(topHype)} ${formatNumber(topHype.hypeScore)}` : "n/a"}</strong> top hype</span>
+    <span><strong>${formatNumber(sourceItems.filter((item) => item.total === 0).length)}</strong> empty visible</span>
+  `;
 }
 
 function getSelectedItem(visibleItems) {
@@ -754,8 +969,9 @@ function renderMarketTags(item, variant = "row") {
 
   return `
     <div class="market-tags market-tags-${variant}">
-      <span class="market-tag flow-${getFlowTone(item)}">${formatSignedTao(item.taoFlow, 4)}</span>
-      <span class="market-tag burn">${formatBurnEmission(item)} burn share</span>
+      <span class="market-tag flow-${getFlowTone(item)}">1M EMA ${formatSignedTao(item.taoFlow, 4)}</span>
+      <span class="market-tag burn">${formatBurnEmission(item)} burn emission</span>
+      <span class="market-tag hype-${getHypeTone(item)}">Hype ${formatNumber(item.hypeScore)}</span>
     </div>
   `;
 }
@@ -764,17 +980,17 @@ function renderMarketDetail(item) {
   if (!item.hasMarket) {
     return `
       <div class="detail-market">
-        <span><strong>n/a</strong><em>TAO flow</em></span>
-        <span><strong>n/a</strong><em>Burn share</em></span>
-        <span><strong>n/a</strong><em>Emission</em></span>
+        <span><strong>n/a</strong><em>1M TAO flow</em></span>
+        <span><strong>n/a</strong><em>Burn emission %</em></span>
+        <span><strong>n/a</strong><em>Burn cost</em></span>
       </div>
     `;
   }
 
   return `
     <div class="detail-market">
-      <span><strong>${formatSignedTao(item.taoFlow, 4)}</strong><em>TAO flow</em></span>
-      <span><strong>${formatBurnEmission(item)}</strong><em>Burn share</em></span>
+      <span><strong>${formatSignedTao(item.taoFlow, 4)}</strong><em>1M TAO flow</em></span>
+      <span><strong>${formatBurnEmission(item)}</strong><em>Burn emission %</em></span>
       <span><strong>${formatTao(item.market.burnCost, 4)}</strong><em>Burn cost</em></span>
     </div>
   `;
@@ -785,14 +1001,6 @@ function renderMapDetail(item) {
     mapDetailEl.innerHTML = `<p class="empty-detail">No subnets match.</p>`;
     return;
   }
-
-  const extra = item.extraReactions.length ? `
-    <div class="detail-extra">
-      ${item.extraReactions.map((reaction) => `
-        <span>${escapeHtml(reaction.emoji)} ${formatNumber(reaction.count)}</span>
-      `).join("")}
-    </div>
-  ` : "";
 
   mapDetailEl.innerHTML = `
     <div class="detail-top ${getTone(item)}">
@@ -815,8 +1023,8 @@ function renderMapDetail(item) {
       <span><strong>${formatNumber(item.up)}</strong> legit</span>
       <span><strong>${formatNumber(item.down)}</strong> bunk</span>
       <span><strong>${formatNumber(item.net)}</strong> net</span>
+      <span><strong>${formatNumber(item.hypeScore)}</strong> hype</span>
     </div>
-    ${extra}
     <a class="detail-link" href="${escapeHtml(item.messageUrl)}" target="_blank" rel="noreferrer">Open message</a>
   `;
 }
@@ -1073,7 +1281,9 @@ function renderBubbleMap(visibleItems) {
     const support = getBubbleBackgroundSupport(item);
     const volumeLabel = state.sizeBy === "tao-flow"
       ? formatCompactTao(item.taoFlow)
-      : item.total > 0 ? `${formatNumber(item.total)}t` : "empty";
+      : state.sizeBy === "hype"
+        ? `H${formatNumber(item.hypeScore)}`
+        : item.total > 0 ? `${formatNumber(item.total)}t` : "empty";
     const zIndex = item.key === state.selectedKey ? 20 : Math.max(1, 14 - Math.round(index / 10));
 
     const sizeClass = size < 54 ? " is-tiny" : size < 72 ? " is-small" : "";
@@ -1105,10 +1315,10 @@ function renderRows(visibleItems) {
         : item.status === "tie"
           ? "50.0% flat"
           : `${formatRatio(getLegitRatio(item))} legit`
-      : "No ratio";
+      : "No thumbs";
     const confidenceLabel = item.total > 0
       ? `score ${formatRatio(getDominantScore(item))}`
-      : "score 0.0%";
+      : "no thumbs";
 
     return `
     <article class="row ${getTone(item)} ${item.key === state.selectedKey ? "is-selected" : ""}" data-key="${escapeHtml(item.key)}">
@@ -1124,13 +1334,6 @@ function renderRows(visibleItems) {
       <div class="split">
         ${renderVoteBalance(item, "row")}
         ${renderMarketTags(item, "row")}
-        ${item.extraReactions.length ? `
-          <div class="extra-reactions">
-            ${item.extraReactions.map((reaction) => `
-              <span>${escapeHtml(reaction.emoji)} ${formatNumber(reaction.count)}</span>
-            `).join("")}
-          </div>
-        ` : ""}
       </div>
 
       <div class="votes">
@@ -1153,6 +1356,7 @@ function renderViews() {
   renderMapDetail(selected);
   renderBubbleMap(visibleItems);
   renderRows(visibleItems);
+  renderAnalytics(visibleItems);
 }
 
 function renderSource() {
@@ -1197,6 +1401,20 @@ filterButtons.forEach((button) => {
   });
 });
 
+signalFilterButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    state.signalFilter = button.dataset.signalFilter;
+
+    signalFilterButtons.forEach((current) => {
+      const isActive = current === button;
+      current.classList.toggle("is-active", isActive);
+      current.setAttribute("aria-pressed", String(isActive));
+    });
+
+    renderViews();
+  });
+});
+
 marketFilterButtons.forEach((button) => {
   button.addEventListener("click", () => {
     state.marketFilter = button.dataset.marketFilter;
@@ -1206,6 +1424,24 @@ marketFilterButtons.forEach((button) => {
       current.classList.toggle("is-active", isActive);
       current.setAttribute("aria-pressed", String(isActive));
     });
+
+    renderViews();
+  });
+});
+
+axisButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    const axis = button.dataset.axis;
+    if (axis === "x") state.axisX = button.dataset.metric;
+    if (axis === "y") state.axisY = button.dataset.metric;
+
+    axisButtons
+      .filter((current) => current.dataset.axis === axis)
+      .forEach((current) => {
+        const isActive = current === button;
+        current.classList.toggle("is-active", isActive);
+        current.setAttribute("aria-pressed", String(isActive));
+      });
 
     renderViews();
   });

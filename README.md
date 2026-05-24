@@ -5,7 +5,7 @@ Public static dashboard for the Discord prompt:
 > Miners, thumbs up 👍 if this subnet is legit and 👎 if this subnet is bunk.
 
 Open `index.html` in a browser to see the dashboard. It reads `data.js`, so it also works from `file://` without a build step.
-The page also reads `market-data.js` for current Finney metagraph metrics: TAO flow and owner/burn-coldkey emission share.
+The page also reads `market-data.js` for current Finney metagraph metrics: 1 month TAO flow and owner/burn-coldkey emission share.
 
 ## Public Release
 
@@ -46,13 +46,14 @@ Refresh market data with:
 npm run refresh:market
 ```
 
-That pulls TAO flow with `Subtensor.get_all_ema_tao_inflow()` and metagraph rows with `Subtensor.get_all_metagraphs_info()`. If the bulk metagraph RPC times out, the script falls back to `Subtensor.get_metagraph_info(netuid)` for every subnet and writes:
+That pulls 1 month / 30 day EMA TAO flow with `Subtensor.get_all_ema_tao_inflow()` and metagraph rows with `Subtensor.get_all_metagraphs_info()`. If the bulk metagraph RPC times out, the script falls back to `Subtensor.get_metagraph_info(netuid)` for every subnet and writes:
 
 - `market-data.js`
 - `exports/subnet-market-data-latest.json`
 - `exports/subnet-market-data-latest.csv`
 
 `burnEmissionPct` is computed as the subnet owner coldkey's share of total metagraph emission for that subnet.
+Taostats documents Tao Flow and Net Tao Flow as 30 day exponential moving averages used in the emission logic. Their API can be used as an alternate hosted source when a Taostats API key is available: <https://docs.taostats.io/docs/tao-flow> and <https://docs.taostats.io/docs/the-taostats-api>.
 
 ## Secret Safety
 
@@ -73,14 +74,16 @@ The raw export has 132 exact message links. Four subnet channels had the exact p
 
 Because this user is not an admin in the Bittensor server, the bot could not be added to the private subnet channels. Reaction counts are scraped read-only through the logged-in Chrome Discord UI instead.
 
-Current live dashboard data was refreshed on 2026-05-24 at 18:41 UTC with exact target-message DOM scoping:
+Current live dashboard data was refreshed on 2026-05-24 at 19:51 UTC with exact target-message DOM scoping:
 
 - `exports/subnet-reactions-latest.json`
 - `exports/subnet-reactions-latest.csv`
-- `exports/subnet-reactions-refreshed-2026-05-24T18-41-37-656Z.json`
-- `exports/subnet-reactions-refreshed-2026-05-24T18-41-37-656Z.csv`
+- `exports/subnet-reactions-refreshed-2026-05-24T19-51-47-249Z.json`
+- `exports/subnet-reactions-refreshed-2026-05-24T19-51-47-249Z.csv`
+- `exports/discord-dom-full-audit-live.json`
+- `exports/discord-dom-zero-audit-live.json`
 
-Latest totals: 128 exact links verified, 1,089 👍, 586 👎, 1,675 total thumbs, 67 legit-leading subnets, 41 bunk-leading subnets, 2 flat subnets, and 18 target messages with no visible thumbs.
+Latest totals: 128 exact links verified, 1,332 👍, 697 👎, 2,029 total thumbs, 79 legit-leading subnets, 45 bunk-leading subnets, 3 flat subnets, and 1 target message with no visible thumbs.
 
 Historical scrape/audit exports are kept for traceability:
 

@@ -252,9 +252,11 @@ def main() -> None:
             "method": "bittensor-sdk",
             "endpoint": endpoint,
             "taoFlowCall": "Subtensor.get_all_ema_tao_inflow",
+            "taoFlowTimeframe": "1 month / 30 day exponential moving average",
             "metagraphCall": "Subtensor.get_all_metagraphs_info",
             "metagraphFetchMode": metagraph_fetch_mode,
             "burnEmissionPct": "owner coldkey emission share of total metagraph emission",
+            "taostatsReference": "https://docs.taostats.io/docs/tao-flow",
         },
         "summary": {
             "subnets": len(items),
