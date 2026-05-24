@@ -17,6 +17,20 @@ The site is packaged for `https://subnetpoll.xyz/` with:
 
 The dashboard itself is intentionally build-free. Deploy the repository root to any static host and point `subnetpoll.xyz` at that host. Keep `data.js` uncached or cache-busted so refreshed Discord counts appear quickly.
 
+Live release:
+
+- GitHub: <https://github.com/0xgrizz/subnetpoll>
+- Vercel production: <https://subnetpoll.vercel.app>
+- Vercel deployment: <https://subnetpoll-na1hcbynr-0xgrizz.vercel.app>
+
+Custom domain status:
+
+- `subnetpoll.xyz` is attached to the Vercel project.
+- `www.subnetpoll.xyz` is attached to the Vercel project.
+- DNS is still controlled by Cloudflare nameservers. Add the Vercel-recommended DNS records in Cloudflare:
+  - `A subnetpoll.xyz 76.76.21.21`
+  - `A www.subnetpoll.xyz 76.76.21.21`
+
 Before publishing, run:
 
 ```sh
