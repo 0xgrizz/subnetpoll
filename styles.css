@@ -1399,6 +1399,236 @@ input:focus,
   margin-top: 12px;
 }
 
+.leader-columns {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1px;
+  background: var(--line);
+}
+
+.leader-column {
+  min-width: 0;
+  background: #0b1019;
+}
+
+.leader-column-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 70px;
+  padding: 14px;
+  border-bottom: 1px solid var(--line);
+}
+
+.leader-column-head > span {
+  display: inline-grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 999px;
+  background: var(--panel-soft);
+  font-size: 1.15rem;
+}
+
+.leader-column-up .leader-column-head > span {
+  background: var(--green-soft);
+}
+
+.leader-column-down .leader-column-head > span {
+  background: var(--red-soft);
+}
+
+.leader-column-head h3,
+.leader-column-head p {
+  margin: 0;
+}
+
+.leader-column-head h3 {
+  font-size: 1rem;
+}
+
+.leader-column-head p {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 0.8rem;
+  font-weight: 850;
+}
+
+.leader-list {
+  display: grid;
+}
+
+.leader-row {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) minmax(74px, auto);
+  gap: 7px 10px;
+  align-items: center;
+  width: 100%;
+  min-height: 82px;
+  padding: 12px 14px;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  background: #0b1019;
+  color: var(--ink);
+  cursor: pointer;
+  text-align: left;
+  transition: background var(--fast), box-shadow var(--fast), transform var(--fast);
+}
+
+.leader-row:hover,
+.leader-row.is-selected {
+  background: #111927;
+}
+
+.leader-row.is-selected {
+  box-shadow: inset 4px 0 0 var(--amber);
+}
+
+.leader-row.is-podium.leader-row-up {
+  background:
+    linear-gradient(90deg, rgba(66, 243, 111, 0.15), transparent 36%),
+    #0b1019;
+}
+
+.leader-row.is-podium.leader-row-down {
+  background:
+    linear-gradient(90deg, rgba(255, 70, 91, 0.15), transparent 36%),
+    #0b1019;
+}
+
+.leader-row.is-podium.leader-row-up:hover,
+.leader-row.is-podium.leader-row-up.is-selected {
+  background:
+    linear-gradient(90deg, rgba(66, 243, 111, 0.19), transparent 38%),
+    #111927;
+}
+
+.leader-row.is-podium.leader-row-down:hover,
+.leader-row.is-podium.leader-row-down.is-selected {
+  background:
+    linear-gradient(90deg, rgba(255, 70, 91, 0.19), transparent 38%),
+    #111927;
+}
+
+.leader-rank {
+  display: inline-grid;
+  place-items: center;
+  width: 38px;
+  height: 38px;
+  border-radius: 8px;
+  background: #151d2b;
+  color: var(--ink);
+  font-size: 0.82rem;
+  font-weight: 950;
+}
+
+.leader-row-up.is-podium .leader-rank {
+  color: var(--green);
+  background: rgba(66, 243, 111, 0.15);
+}
+
+.leader-row-down.is-podium .leader-rank {
+  color: var(--red);
+  background: rgba(255, 70, 91, 0.16);
+}
+
+.leader-name {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+}
+
+.leader-name strong,
+.leader-name em {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.leader-name strong {
+  font-size: 0.94rem;
+}
+
+.leader-name em {
+  color: var(--muted);
+  font-style: normal;
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.leader-count {
+  display: grid;
+  justify-items: end;
+  line-height: 1;
+}
+
+.leader-count strong {
+  font-size: 1.22rem;
+}
+
+.leader-count em {
+  margin-top: 3px;
+  color: var(--muted);
+  font-style: normal;
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.leader-row-up .leader-count strong {
+  color: var(--green);
+}
+
+.leader-row-down .leader-count strong {
+  color: var(--red);
+}
+
+.leader-meta {
+  grid-column: 2 / 4;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px 10px;
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 850;
+}
+
+.leader-meta em {
+  font-style: normal;
+}
+
+.leader-bar {
+  grid-column: 1 / -1;
+  height: 5px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.leader-bar i {
+  display: block;
+  width: var(--leader-volume);
+  height: 100%;
+  border-radius: inherit;
+}
+
+.leader-row-up .leader-bar i {
+  background: linear-gradient(90deg, var(--green), rgba(66, 243, 111, 0.4));
+}
+
+.leader-row-down .leader-bar i {
+  background: linear-gradient(90deg, var(--red), rgba(255, 70, 91, 0.42));
+}
+
+.leader-empty {
+  margin: 0;
+  padding: 18px 14px;
+  color: var(--muted);
+  font-size: 0.84rem;
+  font-weight: 850;
+}
+
 .ranking-head,
 .row {
   display: grid;
@@ -1897,6 +2127,7 @@ input:focus,
   .stats-grid,
   .intelligence-board,
   .control-grid,
+  .leader-columns,
   .ranking-head,
   .row {
     grid-template-columns: 1fr;

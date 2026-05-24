@@ -16,6 +16,8 @@ const state = {
 };
 
 const rowsEl = document.querySelector("#rows");
+const leaderColumnsEl = document.querySelector("#leaderColumns");
+const rankingHeadEl = document.querySelector("#rankingHead");
 const emptyStateEl = document.querySelector("#emptyState");
 const bubbleMapEl = document.querySelector("#bubbleMap");
 const mapShellEl = document.querySelector("#mapShell");
@@ -1105,6 +1107,81 @@ function renderLeaderBadges(item) {
   `;
 }
 
+function renderLeaderColumnItem(item, index, mode, maxValue) {
+  const isUp = mode === "up";
+  const primary = isUp ? item.up : item.down;
+  const secondary = isUp ? item.down : item.up;
+  const ratio = isUp ? getLegitRatio(item) : getBunkRatio(item);
+  const label = isUp ? "up" : "down";
+  const otherLabel = isUp ? "down" : "up";
+  const selected = item.key === state.selectedKey ? " is-selected" : "";
+  const podium = index < LEADER_LIMIT ? " is-podium" : "";
+  const volume = maxValue > 0 ? primary / maxValue * 100 : 0;
+
+  return `
+    <button
+      class="leader-row leader-row-${mode} ${getTone(item)}${selected}${podium}"
+      type="button"
+      data-key="${escapeHtml(item.key)}"
+      style="--leader-volume: ${volume}%;"
+      aria-label="${escapeHtml(item.subnet)} has ${formatNumber(primary)} thumbs ${label} and ${formatNumber(secondary)} thumbs ${otherLabel}."
+    >
+      <span class="leader-rank">#${index + 1}</span>
+      <div class="leader-name">
+        <strong>${escapeHtml(item.subnet)}</strong>
+        <em>${escapeHtml(getTickerName(item))}</em>
+        ${renderLeaderBadges(item)}
+      </div>
+      <span class="leader-count">
+        <strong>${formatNumber(primary)}</strong>
+        <em>${label}</em>
+      </span>
+      <span class="leader-meta">
+        <em>${formatNumber(secondary)} ${otherLabel}</em>
+        <em>${formatRatio(ratio)} ${label}</em>
+      </span>
+      <span class="leader-bar" aria-hidden="true"><i></i></span>
+    </button>
+  `;
+}
+
+function renderLeaderColumn(mode, sourceItems) {
+  const isUp = mode === "up";
+  const columnItems = [...sourceItems]
+    .filter((item) => (isUp ? item.up : item.down) > 0)
+    .sort(isUp ? compareByUpCount : compareByDownCount);
+  const maxValue = Math.max(1, ...columnItems.map((item) => isUp ? item.up : item.down));
+  const total = columnItems.reduce((sum, item) => sum + (isUp ? item.up : item.down), 0);
+  const title = isUp ? "Thumbs up" : "Thumbs down";
+  const symbol = isUp ? "👍" : "👎";
+  const empty = isUp ? "No thumbs up in this view." : "No thumbs down in this view.";
+
+  return `
+    <section class="leader-column leader-column-${mode}" aria-label="${title} ranking">
+      <div class="leader-column-head">
+        <span>${symbol}</span>
+        <div>
+          <h3>${title}</h3>
+          <p>${formatNumber(columnItems.length)} subnets · ${formatNumber(total)} total</p>
+        </div>
+      </div>
+      <div class="leader-list">
+        ${columnItems.length
+          ? columnItems.map((item, index) => renderLeaderColumnItem(item, index, mode, maxValue)).join("")
+          : `<p class="leader-empty">${empty}</p>`}
+      </div>
+    </section>
+  `;
+}
+
+function renderLeaderColumns(visibleItems) {
+  if (!leaderColumnsEl) return;
+  leaderColumnsEl.innerHTML = `
+    ${renderLeaderColumn("up", visibleItems)}
+    ${renderLeaderColumn("down", visibleItems)}
+  `;
+}
+
 function getBubbleBackgroundSupport(item) {
   if (!item.countsKnown || item.total === 0) return 50;
   return getLegitRatio(item) * 100;
@@ -1384,6 +1461,21 @@ function renderBubbleMap(visibleItems) {
 }
 
 function renderRows(visibleItems) {
+  const useLeaderColumns = state.sort === "thumbs-direction";
+
+  if (rankingHeadEl) rankingHeadEl.hidden = useLeaderColumns;
+  if (leaderColumnsEl) leaderColumnsEl.hidden = !useLeaderColumns;
+  rowsEl.hidden = useLeaderColumns;
+
+  if (useLeaderColumns) {
+    rowsEl.innerHTML = "";
+    renderLeaderColumns(visibleItems);
+    emptyStateEl.hidden = visibleItems.length !== 0;
+    return;
+  }
+
+  if (leaderColumnsEl) leaderColumnsEl.innerHTML = "";
+
   rowsEl.innerHTML = visibleItems.map((item, visibleIndex) => {
     const scoreLabel = item.total > 0
       ? item.status === "bunk"
@@ -1567,6 +1659,14 @@ rowsEl.addEventListener("click", (event) => {
   if (event.target.closest("a")) return;
 
   const row = event.target.closest(".row");
+  if (!row) return;
+
+  state.selectedKey = row.dataset.key;
+  renderViews();
+});
+
+leaderColumnsEl?.addEventListener("click", (event) => {
+  const row = event.target.closest(".leader-row");
   if (!row) return;
 
   state.selectedKey = row.dataset.key;
