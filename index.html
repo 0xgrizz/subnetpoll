@@ -83,10 +83,10 @@
           <div class="control-group">
             <span>Order</span>
             <div class="sort-buttons" role="group" aria-label="Order subnets">
-              <button class="sort-chip is-active" type="button" data-sort="votes" aria-pressed="true">Thumbs</button>
-              <button class="sort-chip" type="button" data-sort="signal" aria-pressed="false">Signal</button>
-              <button class="sort-chip" type="button" data-sort="up" aria-pressed="false">Legit</button>
-              <button class="sort-chip" type="button" data-sort="down" aria-pressed="false">Bunk</button>
+              <button class="sort-chip is-active" type="button" data-sort="legit-ratio" aria-pressed="true">Legit %</button>
+              <button class="sort-chip" type="button" data-sort="bunk-ratio" aria-pressed="false">Bunk %</button>
+              <button class="sort-chip" type="button" data-sort="votes" aria-pressed="false">Thumbs</button>
+              <button class="sort-chip" type="button" data-sort="conviction" aria-pressed="false">Conviction</button>
               <button class="sort-chip" type="button" data-sort="name" aria-pressed="false">Name</button>
             </div>
           </div>
@@ -110,14 +110,14 @@
       <section class="signal-board" aria-label="Signal breakdown">
         <article class="signal-panel">
           <div class="panel-head">
-            <span>Highest conviction</span>
+            <span>Best ratio</span>
             <strong>Legit</strong>
           </div>
           <div class="mini-list" id="topLegitList"></div>
         </article>
         <article class="signal-panel">
           <div class="panel-head">
-            <span>Highest pressure</span>
+            <span>Worst ratio</span>
             <strong>Bunk</strong>
           </div>
           <div class="mini-list" id="topBunkList"></div>
@@ -162,7 +162,7 @@
         <div class="ranking-head">
           <span>Subnet</span>
           <span>Reaction split</span>
-          <span>Thumbs</span>
+          <span>Score</span>
         </div>
         <div class="rows" id="rows" aria-live="polite"></div>
         <p class="empty-state" id="emptyState" hidden>No subnets match the current view.</p>

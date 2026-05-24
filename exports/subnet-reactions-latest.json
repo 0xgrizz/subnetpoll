@@ -1,4 +1,4 @@
-window.REACTION_DATA = {
+{
   "isDemo": false,
   "countsPending": false,
   "updatedAt": "2026-05-24T18:41:37.656Z",
@@ -2854,4 +2854,4 @@ window.REACTION_DATA = {
       "scrapeStatus": "verified"
     }
   ]
-};
+}

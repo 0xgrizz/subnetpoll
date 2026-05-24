@@ -1361,10 +1361,15 @@ input:focus,
   line-height: 1;
 }
 
-.votes span {
+.votes span,
+.votes small {
   color: var(--muted);
   font-size: 0.82rem;
   font-weight: 900;
+}
+
+.votes small {
+  font-size: 0.74rem;
 }
 
 .votes a {

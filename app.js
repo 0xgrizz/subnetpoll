@@ -2,7 +2,7 @@ const data = window.REACTION_DATA || {};
 const state = {
   filter: "all",
   search: "",
-  sort: "votes",
+  sort: "legit-ratio",
   sizeBy: "votes",
   selectedKey: null
 };
@@ -138,7 +138,48 @@ function normalizeItem(item, index) {
 const items = Array.isArray(data.items) ? data.items.map(normalizeItem) : [];
 
 function getDownShare(item) {
-  return item.total > 0 ? 100 - item.support : 0;
+  return item.total > 0 ? getBunkRatio(item) * 100 : 0;
+}
+
+function getLegitRatio(item) {
+  return item.total > 0 ? item.up / item.total : 0;
+}
+
+function getBunkRatio(item) {
+  return item.total > 0 ? item.down / item.total : 0;
+}
+
+function formatRatio(value, digits = 1) {
+  return formatPercent(value * 100, digits);
+}
+
+function getWilsonLowerBound(successes, total) {
+  if (total <= 0) return 0;
+
+  const z = 1.96;
+  const ratio = successes / total;
+  const z2 = z * z;
+  const center = ratio + z2 / (2 * total);
+  const margin = z * Math.sqrt((ratio * (1 - ratio) + z2 / (4 * total)) / total);
+  return Math.max(0, (center - margin) / (1 + z2 / total));
+}
+
+function getLegitScore(item) {
+  return getWilsonLowerBound(item.up, item.total);
+}
+
+function getBunkScore(item) {
+  return getWilsonLowerBound(item.down, item.total);
+}
+
+function getDominantRatio(item) {
+  if (item.status === "bunk") return getBunkRatio(item);
+  return getLegitRatio(item);
+}
+
+function getDominantScore(item) {
+  if (item.status === "bunk") return getBunkScore(item);
+  return getLegitScore(item);
 }
 
 function getSignalPercent(item) {
@@ -218,7 +259,7 @@ function hashUnit(value, salt = 0) {
 function getTargetX(item, width, radius) {
   const margin = radius + 18;
   if (!item.countsKnown || item.total === 0) return width * (0.5 + (hashUnit(item.key, 4) - 0.5) * 0.18);
-  return margin + (item.support / 100) * (width - margin * 2);
+  return margin + getLegitRatio(item) * (width - margin * 2);
 }
 
 function getTargetY(item, height) {
@@ -344,9 +385,9 @@ function getGlobalSummary() {
   const statusCounts = getStatusCounts();
   const medianVotes = getMedian(votedItems.map((item) => item.total));
   const averageVotes = votedItems.length ? totalVotes / votedItems.length : 0;
-  const highConfidenceLegit = items.filter((item) => item.total >= 10 && item.support >= 75).length;
-  const highConfidenceBunk = items.filter((item) => item.total >= 10 && item.support <= 25).length;
-  const contested = items.filter((item) => item.total >= 10 && item.support >= 35 && item.support <= 65).length;
+  const highConfidenceLegit = items.filter((item) => item.total >= 10 && getLegitRatio(item) >= 0.75).length;
+  const highConfidenceBunk = items.filter((item) => item.total >= 10 && getBunkRatio(item) >= 0.75).length;
+  const contested = items.filter((item) => item.total >= 10 && getLegitRatio(item) >= 0.35 && getLegitRatio(item) <= 0.65).length;
 
   let verdict = "Split poll";
   let verdictTone = "tie";
@@ -388,13 +429,13 @@ function renderMiniList(target, list, mode) {
 
   target.innerHTML = list.map((item) => {
     const value = mode === "bunk"
-      ? `👎 ${formatNumber(item.down)}`
+      ? `${formatRatio(getBunkRatio(item))} bunk`
       : mode === "contested"
-        ? `${formatPercent(item.support)} / ${formatNumber(item.total)}`
-        : `👍 ${formatNumber(item.up)}`;
+        ? `${formatRatio(getLegitRatio(item))} / ${formatNumber(item.total)}`
+        : `${formatRatio(getLegitRatio(item))} legit`;
     const secondary = mode === "contested"
       ? `${formatNumber(item.up)} up · ${formatNumber(item.down)} down`
-      : `${formatSignal(item)} · ${formatNumber(item.total)} thumbs`;
+      : `${formatNumber(item.total)} thumbs · score ${formatRatio(mode === "bunk" ? getBunkScore(item) : getLegitScore(item))}`;
 
     return `
       <button class="mini-row ${getTone(item)}" type="button" data-key="${escapeHtml(item.key)}">
@@ -413,15 +454,15 @@ function renderIntelligence() {
   const statusTotal = Math.max(items.length, 1);
   const topLegit = [...items]
     .filter((item) => item.total > 0)
-    .sort((a, b) => b.up - a.up || b.net - a.net || b.total - a.total)
+    .sort((a, b) => getLegitScore(b) - getLegitScore(a) || getLegitRatio(b) - getLegitRatio(a) || b.total - a.total)
     .slice(0, 5);
   const topBunk = [...items]
     .filter((item) => item.total > 0)
-    .sort((a, b) => b.down - a.down || a.net - b.net || b.total - a.total)
+    .sort((a, b) => getBunkScore(b) - getBunkScore(a) || getBunkRatio(b) - getBunkRatio(a) || b.total - a.total)
     .slice(0, 5);
   const contested = [...items]
     .filter((item) => item.total >= 10)
-    .sort((a, b) => Math.abs(a.support - 50) - Math.abs(b.support - 50) || b.total - a.total)
+    .sort((a, b) => Math.abs(getLegitRatio(a) - 0.5) - Math.abs(getLegitRatio(b) - 0.5) || b.total - a.total)
     .slice(0, 5);
   const topCoVe = [...items]
     .filter((item) => item.total > 0)
@@ -505,11 +546,12 @@ function applySort(list) {
   const sorted = [...list];
 
   sorted.sort((a, b) => {
+    if (state.sort === "legit-ratio") return getLegitScore(b) - getLegitScore(a) || getLegitRatio(b) - getLegitRatio(a) || b.total - a.total;
+    if (state.sort === "bunk-ratio") return getBunkScore(b) - getBunkScore(a) || getBunkRatio(b) - getBunkRatio(a) || b.total - a.total;
     if (state.sort === "votes") return b.total - a.total || Math.abs(b.net) - Math.abs(a.net);
-    if (state.sort === "up") return b.up - a.up || b.total - a.total;
-    if (state.sort === "down") return b.down - a.down || b.total - a.total;
+    if (state.sort === "conviction") return getCoVeScore(b) - getCoVeScore(a) || b.total - a.total;
     if (state.sort === "name") return a.subnet.localeCompare(b.subnet, undefined, { numeric: true });
-    return Math.abs(b.net) - Math.abs(a.net) || b.total - a.total;
+    return getLegitScore(b) - getLegitScore(a) || b.total - a.total;
   });
 
   return sorted;
@@ -543,7 +585,7 @@ function renderStatus(status) {
 
 function renderVoteBalance(item, variant = "row") {
   const empty = item.total === 0 || !item.countsKnown;
-  const upShare = empty ? 0 : item.support;
+  const upShare = empty ? 0 : getLegitRatio(item) * 100;
   const downShare = empty ? 0 : getDownShare(item);
   const className = `vote-balance vote-balance-${variant}${empty ? " is-empty" : ""}`;
 
@@ -558,8 +600,8 @@ function renderVoteBalance(item, variant = "row") {
         <span class="balance-down" style="width: ${downShare}%"></span>
       </div>
       <div class="balance-labels">
-        <span>${empty ? "No legit thumbs" : `${upShare}% legit`}</span>
-        <span>${empty ? "No bunk thumbs" : `${downShare}% bunk`}</span>
+        <span>${empty ? "No legit thumbs" : `${formatPercent(upShare, 1)} legit`}</span>
+        <span>${empty ? "No bunk thumbs" : `${formatPercent(downShare, 1)} bunk`}</span>
       </div>
     </div>
   `;
@@ -607,7 +649,7 @@ function renderMapDetail(item) {
 
 function getBubbleBackgroundSupport(item) {
   if (!item.countsKnown || item.total === 0) return 50;
-  return item.support;
+  return getLegitRatio(item) * 100;
 }
 
 function getBubbleGlow(item) {
@@ -676,7 +718,19 @@ function renderBubbleMap(visibleItems) {
 }
 
 function renderRows(visibleItems) {
-  rowsEl.innerHTML = visibleItems.map((item, visibleIndex) => `
+  rowsEl.innerHTML = visibleItems.map((item, visibleIndex) => {
+    const scoreLabel = item.total > 0
+      ? item.status === "bunk"
+        ? `${formatRatio(getBunkRatio(item))} bunk`
+        : item.status === "tie"
+          ? "50.0% flat"
+          : `${formatRatio(getLegitRatio(item))} legit`
+      : "No ratio";
+    const confidenceLabel = item.total > 0
+      ? `score ${formatRatio(getDominantScore(item))}`
+      : "score 0.0%";
+
+    return `
     <article class="row ${getTone(item)} ${item.key === state.selectedKey ? "is-selected" : ""}" data-key="${escapeHtml(item.key)}">
       <div class="subnet-cell">
         <span class="rank">${visibleIndex + 1}</span>
@@ -700,11 +754,13 @@ function renderRows(visibleItems) {
 
       <div class="votes">
         <strong>${formatNumber(item.total)}</strong>
-        <span>${formatSignal(item)}</span>
+        <span>${scoreLabel}</span>
+        <small>${confidenceLabel}</small>
         <a href="${escapeHtml(item.messageUrl)}" target="_blank" rel="noreferrer">Open</a>
       </div>
     </article>
-  `).join("");
+  `;
+  }).join("");
 
   emptyStateEl.hidden = visibleItems.length !== 0;
 }

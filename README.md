@@ -21,7 +21,6 @@ Live release:
 
 - GitHub: <https://github.com/0xgrizz/subnetpoll>
 - Vercel production: <https://subnetpoll.vercel.app>
-- Vercel deployment: <https://subnetpoll-na1hcbynr-0xgrizz.vercel.app>
 
 Custom domain status:
 
@@ -56,18 +55,27 @@ I harvested the Discord search results from Chrome into:
 
 The raw export has 132 exact message links. Four subnet channels had the exact prompt twice, so the unique export keeps the newest message per channel and has 128 subnet rows.
 
-Because this user is not an admin in the Bittensor server, the bot could not be added to the private subnet channels. Reaction counts were scraped read-only through the logged-in Chrome Discord UI instead:
+Because this user is not an admin in the Bittensor server, the bot could not be added to the private subnet channels. Reaction counts are scraped read-only through the logged-in Chrome Discord UI instead.
+
+Current live dashboard data was refreshed on 2026-05-24 at 18:41 UTC with exact target-message DOM scoping:
+
+- `exports/subnet-reactions-latest.json`
+- `exports/subnet-reactions-latest.csv`
+- `exports/subnet-reactions-refreshed-2026-05-24T18-41-37-656Z.json`
+- `exports/subnet-reactions-refreshed-2026-05-24T18-41-37-656Z.csv`
+
+Latest totals: 128 exact links verified, 1,089 👍, 586 👎, 1,675 total thumbs, 67 legit-leading subnets, 41 bunk-leading subnets, 2 flat subnets, and 18 target messages with no visible thumbs.
+
+Historical scrape/audit exports are kept for traceability:
 
 - `exports/subnet-reactions-scraped.json`
 - `exports/subnet-reactions-scraped.csv`
-
-The dashboard is currently loaded from this scraped reaction export.
 
 Reliquary (`ᚠ・reliquary・81`) was rechecked directly in Chrome on 2026-05-25 and corrected to 16 👍 / 0 👎. Its first pass had the link but missed the visible reaction badge.
 
 The remaining 36 apparent `0/0` rows were then rechecked through the exact Discord message links in Chrome. That second pass found 21 scrape misses and 15 messages with no visible 👍/👎 reactions. The audit export is `exports/zero-reaction-rescrape.json`.
 
-A stricter target-scoped pass was run on those 15 rows using the exact Discord DOM id for each message. That found 14 more missed rows and left only `ђ・minoτaur・112` at `0/0` on the target prompt. The final audit export is `exports/zero-reaction-targeted-final.json`.
+A stricter target-scoped pass was run on those 15 rows using the exact Discord DOM id for each message. That found 14 more missed rows and left only `ђ・minoτaur・112` at `0/0` in that audit export. The historical audit export is `exports/zero-reaction-targeted-final.json`.
 
 ## Best Refresh Workflow
 
@@ -75,7 +83,7 @@ Use `exports/subnet-message-links-unique.json` as the stable manifest. Do not se
 
 Best case: use a bot that can view the target channels and fetch exact message IDs from the manifest. That is the cleanest and most reliable path because each refresh is just 128 direct message reads.
 
-Current practical path without admin access: refresh from logged-in Chrome by opening each known message URL, waiting for the target message, and parsing visible reaction button `aria-label` values like `thumbsup, 16 reactions`. Save `scrapeStatus` per row, checkpoint results every few links, and keep the previous count when a page load fails. For any `0/0` row, do a second focused pass before trusting it as real zero volume.
+Current practical path without admin access: refresh from logged-in Chrome by opening each known message URL, waiting for `#chat-messages-{channelId}-{messageId}`, and parsing visible reaction button `aria-label` values like `thumbsup, 16 reactions` only inside that exact message container. Save `scrapeStatus` per row, checkpoint results every few links, and never treat a missing target container as `0/0`.
 
 ## Load Real Discord Counts
 
