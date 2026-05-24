@@ -214,6 +214,10 @@ function normalizeItem(item, index) {
 }
 
 const items = Array.isArray(data.items) ? data.items.map(normalizeItem) : [];
+const voteScale = {
+  up: Math.max(1, ...items.map((item) => item.up)),
+  down: Math.max(1, ...items.map((item) => item.down))
+};
 
 function getDownShare(item) {
   return item.total > 0 ? getBunkRatio(item) * 100 : 0;
@@ -935,8 +939,10 @@ function renderStatus(status) {
 
 function renderVoteBalance(item, variant = "row") {
   const empty = item.total === 0 || !item.countsKnown;
-  const upShare = empty ? 0 : getLegitRatio(item) * 100;
-  const downShare = empty ? 0 : getDownShare(item);
+  const upRatioShare = empty ? 0 : getLegitRatio(item) * 100;
+  const downRatioShare = empty ? 0 : getDownShare(item);
+  const upVolumeShare = empty ? 0 : item.up / voteScale.up * 100;
+  const downVolumeShare = empty ? 0 : item.down / voteScale.down * 100;
   const className = `vote-balance vote-balance-${variant}${empty ? " is-empty" : ""}`;
 
   return `
@@ -945,13 +951,16 @@ function renderVoteBalance(item, variant = "row") {
         <span class="vote-up">👍 ${formatNumber(item.up)}</span>
         <span class="vote-down">👎 ${formatNumber(item.down)}</span>
       </div>
-      <div class="balance-track" aria-hidden="true">
-        <span class="balance-up" style="width: ${upShare}%"></span>
-        <span class="balance-down" style="width: ${downShare}%"></span>
+      <div
+        class="balance-track"
+        aria-label="Legit thumbs ${formatNumber(item.up)} of max ${formatNumber(voteScale.up)}. Bunk thumbs ${formatNumber(item.down)} of max ${formatNumber(voteScale.down)}."
+      >
+        <span class="balance-up" style="width: ${upVolumeShare}%"></span>
+        <span class="balance-down" style="width: ${downVolumeShare}%"></span>
       </div>
       <div class="balance-labels">
-        <span>${empty ? "No legit thumbs" : `${formatPercent(upShare, 1)} legit`}</span>
-        <span>${empty ? "No bunk thumbs" : `${formatPercent(downShare, 1)} bunk`}</span>
+        <span>${empty ? "No legit thumbs" : `${formatPercent(upRatioShare, 1)} legit · ${formatPercent(upVolumeShare, 0)} peak`}</span>
+        <span>${empty ? "No bunk thumbs" : `${formatPercent(downRatioShare, 1)} bunk · ${formatPercent(downVolumeShare, 0)} peak`}</span>
       </div>
     </div>
   `;

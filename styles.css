@@ -1174,12 +1174,23 @@ input:focus,
 
 .balance-numbers,
 .balance-labels {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 10px;
   color: var(--muted);
   font-size: 0.78rem;
   font-weight: 900;
+  line-height: 1.25;
+}
+
+.balance-numbers span,
+.balance-labels span {
+  min-width: 0;
+}
+
+.balance-numbers span:last-child,
+.balance-labels span:last-child {
+  text-align: right;
 }
 
 .vote-up {
@@ -1191,13 +1202,16 @@ input:focus,
 }
 
 .balance-track {
-  display: flex;
+  position: relative;
+  display: block;
   overflow: hidden;
   width: 100%;
   height: 16px;
   border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: 999px;
-  background: #111927;
+  background:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.07) 1px, transparent 1px) 0 0 / 20% 100%,
+    #111927;
 }
 
 .vote-balance-detail .balance-track {
@@ -1206,17 +1220,23 @@ input:focus,
 
 .balance-up,
 .balance-down {
+  position: absolute;
+  top: 0;
+  bottom: 0;
   display: block;
   min-width: 0;
-  height: 100%;
+  height: auto;
 }
 
 .balance-up {
+  left: 0;
   background: linear-gradient(90deg, var(--green-deep), var(--green));
 }
 
 .balance-down {
+  right: 0;
   background: linear-gradient(90deg, var(--red), var(--red-deep));
+  box-shadow: -8px 0 16px rgba(5, 7, 12, 0.3);
 }
 
 .vote-balance.is-empty .balance-track {

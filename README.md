@@ -73,16 +73,16 @@ The raw export has 132 exact message links. Four subnet channels had the exact p
 
 Because this user is not an admin in the Bittensor server, the bot could not be added to the private subnet channels. Reaction counts are scraped read-only through the logged-in Chrome Discord UI instead.
 
-Current live dashboard data was refreshed on 2026-05-24 at 19:51 UTC with exact target-message DOM scoping:
+Current live dashboard data was refreshed on 2026-05-24 at 22:04 UTC with exact target-message DOM scoping:
 
 - `exports/subnet-reactions-latest.json`
 - `exports/subnet-reactions-latest.csv`
-- `exports/subnet-reactions-refreshed-2026-05-24T19-51-47-249Z.json`
-- `exports/subnet-reactions-refreshed-2026-05-24T19-51-47-249Z.csv`
+- `exports/subnet-reactions-refreshed-2026-05-24T22-04-32-632Z.json`
+- `exports/subnet-reactions-refreshed-2026-05-24T22-04-32-632Z.csv`
 - `exports/discord-dom-full-audit-live.json`
 - `exports/discord-dom-zero-audit-live.json`
 
-Latest totals: 128 exact links verified, 1,332 👍, 697 👎, 2,029 total thumbs, 79 legit-leading subnets, 45 bunk-leading subnets, 3 flat subnets, and 1 target message with no visible thumbs.
+Latest totals: 128 exact links verified, 1,492 👍, 855 👎, 2,347 total thumbs, 78 legit-leading subnets, 45 bunk-leading subnets, 4 flat subnets, and 1 target message with no visible thumbs.
 
 Historical scrape/audit exports are kept for traceability:
 
@@ -101,7 +101,7 @@ Use `exports/subnet-message-links-unique.json` as the stable manifest. Do not se
 
 Best case: use a bot that can view the target channels and fetch exact message IDs from the manifest. That is the cleanest and most reliable path because each refresh is just 128 direct message reads.
 
-Current practical path without admin access: refresh from logged-in Chrome by opening each known message URL, waiting for `#chat-messages-{channelId}-{messageId}`, and parsing visible reaction button `aria-label` values like `thumbsup, 16 reactions` only inside that exact message container. Save `scrapeStatus` per row, checkpoint results every few links, and never treat a missing target container as `0/0`.
+Current practical path without admin access: refresh from logged-in Chrome by opening each known message URL, waiting for `#chat-messages-{channelId}-{messageId}`, and parsing visible reaction button `aria-label` values like `thumbsup, 16 reactions` only inside that exact message container. Some Discord rows populate reaction labels after the message container appears, so the refresh also checks the reaction DOM fallback (`img` emoji alt + visible count) before treating a target as empty. Save `scrapeStatus` per row, checkpoint results every few links, and never treat a missing target container as `0/0`.
 
 ## Load Real Discord Counts
 
