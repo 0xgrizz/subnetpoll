@@ -1,0 +1,132 @@
+{
+  "batch": "a",
+  "results": [
+    {
+      "subnet": "ᚦ・cliqueai・83",
+      "channelName": "ᚦ・cliqueai・83",
+      "channelId": "1355560253076410428",
+      "messageId": "1508073767148982382",
+      "messageUrl": "https://discord.com/channels/799672011265015819/1355560253076410428/1508073767148982382",
+      "up": 6,
+      "down": 12,
+      "reactions": [
+        {
+          "emoji": "thumbsup",
+          "count": 6,
+          "label": "thumbsup, 6 reactions, press to react"
+        },
+        {
+          "emoji": "thumbsdown",
+          "count": 12,
+          "label": "thumbsdown, 12 reactions, press to react"
+        }
+      ],
+      "scrapeStatus": "target-verified",
+      "reactionLabels": [
+        "thumbsup, 6 reactions, press to react",
+        "thumbsdown, 12 reactions, press to react"
+      ],
+      "foundTarget": true,
+      "targetText": "6\n12\nAdd Reaction",
+      "checkedAt": "2026-05-24T16:46:33.582Z"
+    },
+    {
+      "subnet": "ы・luminar・87",
+      "channelName": "ы・luminar・87",
+      "channelId": "1409555541910355998",
+      "messageId": "1508073748060700805",
+      "messageUrl": "https://discord.com/channels/799672011265015819/1409555541910355998/1508073748060700805",
+      "up": 8,
+      "down": 3,
+      "reactions": [
+        {
+          "emoji": "thumbsdown",
+          "count": 3,
+          "label": "thumbsdown, 3 reactions, press to react"
+        },
+        {
+          "emoji": "thumbsup",
+          "count": 8,
+          "label": "thumbsup, 8 reactions, press to react"
+        }
+      ],
+      "scrapeStatus": "target-verified",
+      "reactionLabels": [
+        "thumbsdown, 3 reactions, press to react",
+        "thumbsup, 8 reactions, press to react"
+      ],
+      "foundTarget": true,
+      "targetText": "3\n8\nAdd Reaction",
+      "checkedAt": "2026-05-24T16:46:44.310Z"
+    },
+    {
+      "subnet": "_・unclaimed・90",
+      "channelName": "_・unclaimed・90",
+      "channelId": "1448063556368076941",
+      "messageId": "1508073734559498252",
+      "messageUrl": "https://discord.com/channels/799672011265015819/1448063556368076941/1508073734559498252",
+      "up": 1,
+      "down": 0,
+      "reactions": [
+        {
+          "emoji": "thumbsup",
+          "count": 1,
+          "label": "thumbsup, 1 reaction, press to react"
+        }
+      ],
+      "scrapeStatus": "target-verified",
+      "reactionLabels": [
+        "thumbsup, 1 reaction, press to react"
+      ],
+      "foundTarget": true,
+      "targetText": "1\nAdd Reaction",
+      "checkedAt": "2026-05-24T16:46:55.330Z"
+    },
+    {
+      "subnet": "ᚃ・biτcasτ・93",
+      "channelName": "ᚃ・biτcasτ・93",
+      "channelId": "1362489640841380045",
+      "messageId": "1508073721779326986",
+      "messageUrl": "https://discord.com/channels/799672011265015819/1362489640841380045/1508073721779326986",
+      "up": 6,
+      "down": 0,
+      "reactions": [
+        {
+          "emoji": "thumbsup",
+          "count": 6,
+          "label": "thumbsup, 6 reactions, press to react"
+        }
+      ],
+      "scrapeStatus": "target-verified",
+      "reactionLabels": [
+        "thumbsup, 6 reactions, press to react"
+      ],
+      "foundTarget": true,
+      "targetText": "6\nAdd Reaction",
+      "checkedAt": "2026-05-24T16:47:06.187Z"
+    },
+    {
+      "subnet": "ᚄ・biτsoτa・94",
+      "channelName": "ᚄ・biτsoτa・94",
+      "channelId": "1443001560635281581",
+      "messageId": "1508073719015276564",
+      "messageUrl": "https://discord.com/channels/799672011265015819/1443001560635281581/1508073719015276564",
+      "up": 0,
+      "down": 5,
+      "reactions": [
+        {
+          "emoji": "thumbsdown",
+          "count": 5,
+          "label": "thumbsdown, 5 reactions, press to react"
+        }
+      ],
+      "scrapeStatus": "target-verified",
+      "reactionLabels": [
+        "thumbsdown, 5 reactions, press to react"
+      ],
+      "foundTarget": true,
+      "targetText": "5\nAdd Reaction",
+      "checkedAt": "2026-05-24T16:47:16.924Z"
+    }
+  ]
+}

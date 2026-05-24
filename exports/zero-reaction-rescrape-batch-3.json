@@ -1,0 +1,109 @@
+{
+  "batch": 3,
+  "results": [
+    {
+      "subnet": "ᚦ・cliqueai・83",
+      "channelName": "ᚦ・cliqueai・83",
+      "channelId": "1355560253076410428",
+      "messageId": "1508073767148982382",
+      "messageUrl": "https://discord.com/channels/799672011265015819/1355560253076410428/1508073767148982382",
+      "up": 0,
+      "down": 0,
+      "reactions": [],
+      "reactionLabels": [],
+      "scrapeStatus": "verified",
+      "checkedAt": "2026-05-24T16:37:34.392Z"
+    },
+    {
+      "subnet": "ы・luminar・87",
+      "channelName": "ы・luminar・87",
+      "channelId": "1409555541910355998",
+      "messageId": "1508073748060700805",
+      "messageUrl": "https://discord.com/channels/799672011265015819/1409555541910355998/1508073748060700805",
+      "up": 0,
+      "down": 0,
+      "reactions": [],
+      "reactionLabels": [],
+      "scrapeStatus": "no-visible-reactions",
+      "checkedAt": "2026-05-24T16:37:38.921Z"
+    },
+    {
+      "subnet": "ᛒ・infiniτehash・89",
+      "channelName": "ᛒ・infiniτehash・89",
+      "channelId": "1359592408119120033",
+      "messageId": "1508073740448305242",
+      "messageUrl": "https://discord.com/channels/799672011265015819/1359592408119120033/1508073740448305242",
+      "up": 3,
+      "down": 0,
+      "reactions": [
+        {
+          "emoji": "100",
+          "count": 1,
+          "label": "100, 1 reaction, press to react"
+        },
+        {
+          "emoji": "eyes",
+          "count": 2,
+          "label": "eyes, 2 reactions, press to react"
+        },
+        {
+          "emoji": "white check mark",
+          "count": 1,
+          "label": "white check mark, 1 reaction, press to react"
+        },
+        {
+          "emoji": "thumbsup tone1",
+          "count": 3,
+          "label": "thumbsup tone1, 3 reactions, press to react"
+        }
+      ],
+      "reactionLabels": [
+        "100, 1 reaction, press to react",
+        "eyes, 2 reactions, press to react",
+        "white check mark, 1 reaction, press to react",
+        "thumbsup tone1, 3 reactions, press to react"
+      ],
+      "scrapeStatus": "verified",
+      "checkedAt": "2026-05-24T16:37:43.912Z"
+    },
+    {
+      "subnet": "_・unclaimed・90",
+      "channelName": "_・unclaimed・90",
+      "channelId": "1448063556368076941",
+      "messageId": "1508073734559498252",
+      "messageUrl": "https://discord.com/channels/799672011265015819/1448063556368076941/1508073734559498252",
+      "up": 0,
+      "down": 0,
+      "reactions": [],
+      "reactionLabels": [],
+      "scrapeStatus": "no-visible-reactions",
+      "checkedAt": "2026-05-24T16:37:48.578Z"
+    },
+    {
+      "subnet": "ᚃ・biτcasτ・93",
+      "channelName": "ᚃ・biτcasτ・93",
+      "channelId": "1362489640841380045",
+      "messageId": "1508073721779326986",
+      "messageUrl": "https://discord.com/channels/799672011265015819/1362489640841380045/1508073721779326986",
+      "up": 0,
+      "down": 0,
+      "reactions": [],
+      "reactionLabels": [],
+      "scrapeStatus": "verified",
+      "checkedAt": "2026-05-24T16:37:53.334Z"
+    },
+    {
+      "subnet": "ᚄ・biτsoτa・94",
+      "channelName": "ᚄ・biτsoτa・94",
+      "channelId": "1443001560635281581",
+      "messageId": "1508073719015276564",
+      "messageUrl": "https://discord.com/channels/799672011265015819/1443001560635281581/1508073719015276564",
+      "up": 0,
+      "down": 0,
+      "reactions": [],
+      "reactionLabels": [],
+      "scrapeStatus": "no-visible-reactions",
+      "checkedAt": "2026-05-24T16:37:58.182Z"
+    }
+  ]
+}

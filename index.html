@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>SubnetPoll.xyz</title>
+    <meta name="description" content="A public Bittensor subnet reaction dashboard showing legit, bunk, contested, and empty poll signals from the Discord subnet prompt.">
+    <meta name="theme-color" content="#05070c">
+    <link rel="canonical" href="https://subnetpoll.xyz/">
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="SubnetPoll.xyz">
+    <meta property="og:title" content="SubnetPoll.xyz">
+    <meta property="og:description" content="Live-style bubble screener for Bittensor subnet poll reactions.">
+    <meta property="og:url" content="https://subnetpoll.xyz/">
+    <meta property="og:image" content="https://subnetpoll.xyz/og-card.svg">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="SubnetPoll.xyz">
+    <meta name="twitter:description" content="A fast public overview of Bittensor subnet poll consensus.">
+    <meta name="twitter:image" content="https://subnetpoll.xyz/og-card.svg">
+    <link rel="icon" href="favicon.svg" type="image/svg+xml">
+    <link rel="manifest" href="site.webmanifest">
+    <link rel="stylesheet" href="styles.css?v=14">
+    <script src="data.js?v=14" defer></script>
+    <script src="app.js?v=14" defer></script>
+  </head>
+  <body>
+    <a class="skip-link" href="#bubbleMap">Skip to bubble map</a>
+    <main class="app-shell">
+      <header class="app-header">
+        <div class="brand-block">
+          <span class="brand-mark" aria-hidden="true">SP</span>
+          <div>
+            <p class="eyebrow">Bittensor Discord poll</p>
+            <h1>SubnetPoll</h1>
+            <p class="message" id="messageText"></p>
+          </div>
+        </div>
+
+        <div class="source-panel">
+          <span class="data-badge" id="dataBadge">Data</span>
+          <a id="sourceLink" href="#" target="_blank" rel="noreferrer">Open source message</a>
+          <span id="updatedAt">Not updated yet</span>
+        </div>
+      </header>
+
+      <section class="control-deck" aria-label="Dashboard controls">
+        <section class="stats-grid" aria-label="Reaction summary">
+          <article class="stat">
+            <span class="stat-label">Subnets</span>
+            <strong id="statSubnets">0</strong>
+          </article>
+          <article class="stat positive">
+            <span class="stat-label">Legit thumbs</span>
+            <strong id="statUp">0</strong>
+          </article>
+          <article class="stat negative">
+            <span class="stat-label">Bunk thumbs</span>
+            <strong id="statDown">0</strong>
+          </article>
+          <article class="stat">
+            <span class="stat-label">Net signal</span>
+            <strong id="statNet">0</strong>
+          </article>
+        </section>
+
+        <div class="control-grid">
+          <label class="search-box">
+            <span>Search</span>
+            <input id="searchInput" type="search" placeholder="Subnet or channel">
+          </label>
+
+          <div class="control-group">
+            <span>Filter</span>
+            <div class="segmented" role="group" aria-label="Filter subnets by result">
+              <button class="segment is-active" type="button" data-filter="all" aria-pressed="true"><span>All</span><b data-filter-count="all">0</b></button>
+              <button class="segment" type="button" data-filter="legit" aria-pressed="false"><span>Legit</span><b data-filter-count="legit">0</b></button>
+              <button class="segment" type="button" data-filter="bunk" aria-pressed="false"><span>Bunk</span><b data-filter-count="bunk">0</b></button>
+              <button class="segment" type="button" data-filter="tie" aria-pressed="false"><span>Flat</span><b data-filter-count="tie">0</b></button>
+              <button class="segment" type="button" data-filter="no-votes" aria-pressed="false"><span>Empty</span><b data-filter-count="no-votes">0</b></button>
+            </div>
+          </div>
+
+          <div class="control-group">
+            <span>Order</span>
+            <div class="sort-buttons" role="group" aria-label="Order subnets">
+              <button class="sort-chip is-active" type="button" data-sort="votes" aria-pressed="true">Thumbs</button>
+              <button class="sort-chip" type="button" data-sort="signal" aria-pressed="false">Signal</button>
+              <button class="sort-chip" type="button" data-sort="up" aria-pressed="false">Legit</button>
+              <button class="sort-chip" type="button" data-sort="down" aria-pressed="false">Bunk</button>
+              <button class="sort-chip" type="button" data-sort="name" aria-pressed="false">Name</button>
+            </div>
+          </div>
+
+          <div class="control-group">
+            <span>Bubble size</span>
+            <div class="size-toggle" role="group" aria-label="Bubble size">
+              <button class="size-chip is-active" type="button" data-size-by="votes" aria-pressed="true">Volume</button>
+              <button class="size-chip" type="button" data-size-by="signal" aria-pressed="false">Signal</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="intelligence-board" aria-label="Global poll intelligence">
+        <article class="verdict-card" id="verdictCard"></article>
+        <article class="distribution-card" id="distributionCard"></article>
+        <article class="audit-card" id="auditCard"></article>
+      </section>
+
+      <section class="signal-board" aria-label="Signal breakdown">
+        <article class="signal-panel">
+          <div class="panel-head">
+            <span>Highest conviction</span>
+            <strong>Legit</strong>
+          </div>
+          <div class="mini-list" id="topLegitList"></div>
+        </article>
+        <article class="signal-panel">
+          <div class="panel-head">
+            <span>Highest pressure</span>
+            <strong>Bunk</strong>
+          </div>
+          <div class="mini-list" id="topBunkList"></div>
+        </article>
+        <article class="signal-panel">
+          <div class="panel-head">
+            <span>Needs judgment</span>
+            <strong>Contested</strong>
+          </div>
+          <div class="mini-list" id="contestedList"></div>
+        </article>
+      </section>
+
+      <section class="market-board" aria-label="Subnet bubble map">
+        <div class="board-head">
+          <div>
+            <p class="eyebrow">Live reaction heatmap</p>
+            <h2>Consensus Map</h2>
+          </div>
+          <div class="board-meta">
+            <span><i class="legend-dot legit"></i>Legit share</span>
+            <span><i class="legend-dot bunk"></i>Bunk share</span>
+            <span><i class="legend-dot tie"></i>Balanced</span>
+            <span><i class="legend-dot quiet"></i>No volume</span>
+          </div>
+        </div>
+
+        <div class="map-layout">
+          <div class="map-shell" id="mapShell">
+            <div class="axis-bar" aria-hidden="true">
+              <span>Bunk</span>
+              <span>Mixed</span>
+              <span>Legit</span>
+            </div>
+            <div class="bubble-map" id="bubbleMap" role="group"></div>
+          </div>
+          <aside class="map-detail" id="mapDetail" aria-live="polite"></aside>
+        </div>
+      </section>
+
+      <section class="ranking-board" aria-label="Subnet reaction table">
+        <div class="ranking-head">
+          <span>Subnet</span>
+          <span>Reaction split</span>
+          <span>Thumbs</span>
+        </div>
+        <div class="rows" id="rows" aria-live="polite"></div>
+        <p class="empty-state" id="emptyState" hidden>No subnets match the current view.</p>
+      </section>
+
+      <footer class="site-footer" aria-label="Site credit">
+        <span>Made with love by grizz</span>
+        <a href="https://subnetpoll.xyz/" rel="home">subnetpoll.xyz</a>
+      </footer>
+    </main>
+  </body>
+</html>

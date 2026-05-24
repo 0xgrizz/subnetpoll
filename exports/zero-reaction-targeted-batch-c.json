@@ -1,0 +1,148 @@
+{
+  "batch": "c",
+  "results": [
+    {
+      "subnet": "ё・oneoneone・111",
+      "channelName": "ё・oneoneone・111",
+      "channelId": "1375215258678857728",
+      "messageId": "1508073635074539620",
+      "messageUrl": "https://discord.com/channels/799672011265015819/1375215258678857728/1508073635074539620",
+      "up": 1,
+      "down": 2,
+      "reactions": [
+        {
+          "emoji": "thumbsup",
+          "count": 1,
+          "label": "thumbsup, 1 reaction, press to react"
+        },
+        {
+          "emoji": "thumbsdown",
+          "count": 2,
+          "label": "thumbsdown, 2 reactions, press to react"
+        }
+      ],
+      "scrapeStatus": "target-verified",
+      "reactionLabels": [
+        "thumbsup, 1 reaction, press to react",
+        "thumbsdown, 2 reactions, press to react"
+      ],
+      "foundTarget": true,
+      "targetText": "1\n2\nAdd Reaction",
+      "checkedAt": "2026-05-24T16:48:55.403Z"
+    },
+    {
+      "subnet": "ђ・minoτaur・112",
+      "channelName": "ђ・minoτaur・112",
+      "channelId": "1376603375113863178",
+      "messageId": "1508073630171660350",
+      "messageUrl": "https://discord.com/channels/799672011265015819/1376603375113863178/1508073630171660350",
+      "up": 0,
+      "down": 0,
+      "reactions": [],
+      "scrapeStatus": "target-verified",
+      "reactionLabels": [],
+      "foundTarget": true,
+      "targetText": "",
+      "checkedAt": "2026-05-24T16:49:06.123Z"
+    },
+    {
+      "subnet": "ⴷ・ⴷffine・120",
+      "channelName": "ⴷ・ⴷffine・120",
+      "channelId": "1381987595881414656",
+      "messageId": "1508073595434434600",
+      "messageUrl": "https://discord.com/channels/799672011265015819/1381987595881414656/1508073595434434600",
+      "up": 25,
+      "down": 3,
+      "reactions": [
+        {
+          "emoji": "thumbsup",
+          "count": 25,
+          "label": "thumbsup, 25 reactions, press to react"
+        },
+        {
+          "emoji": "thumbsdown tone1",
+          "count": 3,
+          "label": "thumbsdown tone1, 3 reactions, press to react"
+        },
+        {
+          "emoji": "six",
+          "count": 2,
+          "label": "six, 2 reactions, press to react"
+        },
+        {
+          "emoji": "seven",
+          "count": 2,
+          "label": "seven, 2 reactions, press to react"
+        }
+      ],
+      "scrapeStatus": "target-verified",
+      "reactionLabels": [
+        "thumbsup, 25 reactions, press to react",
+        "thumbsdown tone1, 3 reactions, press to react",
+        "six, 2 reactions, press to react",
+        "seven, 2 reactions, press to react"
+      ],
+      "foundTarget": true,
+      "targetText": "25\n3\n2\n2\nAdd Reaction",
+      "checkedAt": "2026-05-24T16:49:17.008Z"
+    },
+    {
+      "subnet": "ⲅ・sundae-bar・121",
+      "channelName": "ⲅ・sundae-bar・121",
+      "channelId": "1382818027241738352",
+      "messageId": "1508073590967505007",
+      "messageUrl": "https://discord.com/channels/799672011265015819/1382818027241738352/1508073590967505007",
+      "up": 8,
+      "down": 1,
+      "reactions": [
+        {
+          "emoji": "thumbsup",
+          "count": 8,
+          "label": "thumbsup, 8 reactions, press to react"
+        },
+        {
+          "emoji": "thumbsdown",
+          "count": 1,
+          "label": "thumbsdown, 1 reaction, press to react"
+        }
+      ],
+      "scrapeStatus": "target-verified",
+      "reactionLabels": [
+        "thumbsup, 8 reactions, press to react",
+        "thumbsdown, 1 reaction, press to react"
+      ],
+      "foundTarget": true,
+      "targetText": "8\n1\nAdd Reaction",
+      "checkedAt": "2026-05-24T16:49:27.750Z"
+    },
+    {
+      "subnet": "𑀁・swarm・124",
+      "channelName": "𑀁・swarm・124",
+      "channelId": "1385341501130801172",
+      "messageId": "1508073577100869654",
+      "messageUrl": "https://discord.com/channels/799672011265015819/1385341501130801172/1508073577100869654",
+      "up": 10,
+      "down": 5,
+      "reactions": [
+        {
+          "emoji": "thumbsdown",
+          "count": 5,
+          "label": "thumbsdown, 5 reactions, press to react"
+        },
+        {
+          "emoji": "thumbsup",
+          "count": 10,
+          "label": "thumbsup, 10 reactions, press to react"
+        }
+      ],
+      "scrapeStatus": "target-verified",
+      "reactionLabels": [
+        "thumbsdown, 5 reactions, press to react",
+        "thumbsup, 10 reactions, press to react"
+      ],
+      "foundTarget": true,
+      "targetText": "5\n10\nAdd Reaction",
+      "checkedAt": "2026-05-24T16:49:38.781Z"
+    }
+  ]
+}

@@ -1,0 +1,103 @@
+{
+  "batch": 4,
+  "results": [
+    {
+      "subnet": "ᚅ・actual・95",
+      "channelName": "ᚅ・actual・95",
+      "channelId": "1364253568961609859",
+      "messageId": "1508073713701228745",
+      "messageUrl": "https://discord.com/channels/799672011265015819/1364253568961609859/1508073713701228745",
+      "up": 0,
+      "down": 0,
+      "reactions": [],
+      "reactionLabels": [],
+      "scrapeStatus": "verified",
+      "checkedAt": "2026-05-24T16:38:17.086Z"
+    },
+    {
+      "subnet": "᚛・veraτhos・96",
+      "channelName": "᚛・veraτhos・96",
+      "channelId": "1480627157406584945",
+      "messageId": "1508073709494079630",
+      "messageUrl": "https://discord.com/channels/799672011265015819/1480627157406584945/1508073709494079630",
+      "up": 6,
+      "down": 0,
+      "reactions": [
+        {
+          "emoji": "100",
+          "count": 2,
+          "label": "100, 2 reactions, press to react"
+        },
+        {
+          "emoji": "100",
+          "count": 1,
+          "label": "100, 1 reaction, press to react"
+        },
+        {
+          "emoji": "thumbsup",
+          "count": 6,
+          "label": "thumbsup, 6 reactions, press to react"
+        }
+      ],
+      "reactionLabels": [
+        "100, 2 reactions, press to react",
+        "100, 1 reaction, press to react",
+        "thumbsup, 6 reactions, press to react"
+      ],
+      "scrapeStatus": "verified",
+      "checkedAt": "2026-05-24T16:38:21.528Z"
+    },
+    {
+      "subnet": "გ・leoma・99",
+      "channelName": "გ・leoma・99",
+      "channelId": "1465791819756339261",
+      "messageId": "1508073693321105418",
+      "messageUrl": "https://discord.com/channels/799672011265015819/1465791819756339261/1508073693321105418",
+      "up": 0,
+      "down": 0,
+      "reactions": [],
+      "reactionLabels": [],
+      "scrapeStatus": "no-visible-reactions",
+      "checkedAt": "2026-05-24T16:38:25.933Z"
+    },
+    {
+      "subnet": "ე・unclaimed・101",
+      "channelName": "ე・unclaimed・101",
+      "channelId": "1368946065738436749",
+      "messageId": "1508073683426607114",
+      "messageUrl": "https://discord.com/channels/799672011265015819/1368946065738436749/1508073683426607114",
+      "up": 0,
+      "down": 0,
+      "reactions": [],
+      "reactionLabels": [],
+      "scrapeStatus": "no-visible-reactions",
+      "checkedAt": "2026-05-24T16:38:30.279Z"
+    },
+    {
+      "subnet": "ա・djinn・103",
+      "channelName": "ա・djinn・103",
+      "channelId": "1465362098971345010",
+      "messageId": "1508073674551460001",
+      "messageUrl": "https://discord.com/channels/799672011265015819/1465362098971345010/1508073674551460001",
+      "up": 0,
+      "down": 0,
+      "reactions": [],
+      "reactionLabels": [],
+      "scrapeStatus": "no-visible-reactions",
+      "checkedAt": "2026-05-24T16:38:34.623Z"
+    },
+    {
+      "subnet": "զ・talkhead・108",
+      "channelName": "զ・talkhead・108",
+      "channelId": "1450185343205904565",
+      "messageId": "1508073648945106945",
+      "messageUrl": "https://discord.com/channels/799672011265015819/1450185343205904565/1508073648945106945",
+      "up": 0,
+      "down": 0,
+      "reactions": [],
+      "reactionLabels": [],
+      "scrapeStatus": "no-visible-reactions",
+      "checkedAt": "2026-05-24T16:38:39.243Z"
+    }
+  ]
+}

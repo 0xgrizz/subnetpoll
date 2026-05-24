@@ -1,0 +1,1095 @@
+{
+  "checkedAt": "2026-05-24T16:40:35Z",
+  "source": "focused Chrome verification of rows that were 0/0 in data.js",
+  "checked": 36,
+  "nonZero": 21,
+  "stillZero": 15,
+  "results": [
+    {
+      "subnet": "ب・unclaimed・53",
+      "channelName": "ب・unclaimed・53",
+      "channelId": "1499471917185368247",
+      "messageId": "1508073942370226237",
+      "messageUrl": "https://discord.com/channels/799672011265015819/1499471917185368247/1508073942370226237",
+      "up": 0,
+      "down": 1,
+      "reactions": [
+        {
+          "emoji": "cheems",
+          "count": 2,
+          "label": "cheems, 2 reactions, press to react"
+        },
+        {
+          "emoji": "thumbsdown",
+          "count": 1,
+          "label": "thumbsdown, 1 reaction, press to react"
+        }
+      ],
+      "reactionLabels": [
+        "cheems, 2 reactions, press to react",
+        "thumbsdown, 1 reaction, press to react"
+      ],
+      "scrapeStatus": "verified",
+      "checkedAt": "2026-05-24T16:36:03.908Z"
+    },
+    {
+      "subnet": "ح・unclaimed・57",
+      "channelName": "ح・unclaimed・57",
+      "channelId": "1498317068238327928",
+      "messageId": "1508073909117915317",
+      "messageUrl": "https://discord.com/channels/799672011265015819/1498317068238327928/1508073909117915317",
+      "up": 0,
+      "down": 2,
+      "reactions": [
+        {
+          "emoji": "thumbsdown",
+          "count": 2,
+          "label": "thumbsdown, 2 reactions, press to react"
+        }
+      ],
+      "reactionLabels": [
+        "thumbsdown, 2 reactions, press to react"
+      ],
+      "scrapeStatus": "verified",
+      "checkedAt": "2026-05-24T16:36:08.917Z"
+    },
+    {
+      "subnet": "خ・handshake・58",
+      "channelName": "خ・handshake・58",
+      "channelId": "1471865964479119604",
+      "messageId": "1508073899076878396",
+      "messageUrl": "https://discord.com/channels/799672011265015819/1471865964479119604/1508073899076878396",
+      "up": 0,
+      "down": 2,
+      "reactions": [
+        {
+          "emoji": "eyes",
+          "count": 1,
+          "label": "eyes, 1 reaction, press to react"
+        },
+        {
+          "emoji": "heart",
+          "count": 1,
+          "label": "heart, 1 reaction, press to react"
+        },
+        {
+          "emoji": "thumbsdown",
+          "count": 2,
+          "label": "thumbsdown, 2 reactions, press to react"
+        }
+      ],
+      "reactionLabels": [
+        "eyes, 1 reaction, press to react",
+        "heart, 1 reaction, press to react",
+        "thumbsdown, 2 reactions, press to react"
+      ],
+      "scrapeStatus": "verified",
+      "checkedAt": "2026-05-24T16:36:13.945Z"
+    },
+    {
+      "subnet": "ذ・bitsec・60",
+      "channelName": "ذ・bitsec・60",
+      "channelId": "1300553352274382848",
+      "messageId": "1508073883251507220",
+      "messageUrl": "https://discord.com/channels/799672011265015819/1300553352274382848/1508073883251507220",
+      "up": 14,
+      "down": 7,
+      "reactions": [
+        {
+          "emoji": "thumbsdown",
+          "count": 7,
+          "label": "thumbsdown, 7 reactions, press to react"
+        },
+        {
+          "emoji": "thumbsup",
+          "count": 13,
+          "label": "thumbsup, 13 reactions, press to react"
+        },
+        {
+          "emoji": "thumbsup",
+          "count": 1,
+          "label": "thumbsup, 1 reaction, press to react"
+        }
+      ],
+      "reactionLabels": [
+        "thumbsdown, 7 reactions, press to react",
+        "thumbsup, 13 reactions, press to react",
+        "thumbsup, 1 reaction, press to react"
+      ],
+      "scrapeStatus": "verified",
+      "checkedAt": "2026-05-24T16:36:18.978Z"
+    },
+    {
+      "subnet": "ر・red-team・61",
+      "channelName": "ر・red-team・61",
+      "channelId": "1319313447435108413",
+      "messageId": "1508073877195063316",
+      "messageUrl": "https://discord.com/channels/799672011265015819/1319313447435108413/1508073877195063316",
+      "up": 12,
+      "down": 2,
+      "reactions": [
+        {
+          "emoji": "100",
+          "count": 1,
+          "label": "100, 1 reaction, press to react"
+        },
+        {
+          "emoji": "thumbsdown",
+          "count": 2,
+          "label": "thumbsdown, 2 reactions, press to react"
+        },
+        {
+          "emoji": "thumbsup",
+          "count": 12,
+          "label": "thumbsup, 12 reactions, press to react"
+        },
+        {
+          "emoji": "regional indicator n",
+          "count": 1,
+          "label": "regional indicator n, 1 reaction, press to react"
+        },
+        {
+          "emoji": "regional indicator o",
+          "count": 1,
+          "label": "regional indicator o, 1 reaction, press to react"
+        }
+      ],
+      "reactionLabels": [
+        "100, 1 reaction, press to react",
+        "thumbsdown, 2 reactions, press to react",
+        "thumbsup, 12 reactions, press to react",
+        "regional indicator n, 1 reaction, press to react",
+        "regional indicator o, 1 reaction, press to react"
+      ],
+      "scrapeStatus": "verified",
+      "checkedAt": "2026-05-24T16:36:24.033Z"
+    },
+    {
+      "subnet": "ل・ridges・62",
+      "channelName": "ل・ridges・62",
+      "channelId": "1320812830735339580",
+      "messageId": "1508073866667233290",
+      "messageUrl": "https://discord.com/channels/799672011265015819/1320812830735339580/1508073866667233290",
+      "up": 13,
+      "down": 41,
+      "reactions": [
+        {
+          "emoji": "thumbsup",
+          "count": 4,
+          "label": "thumbsup, 4 reactions, press to react"
+        },
+        {
+          "emoji": "heart",
+          "count": 4,
+          "label": "heart, 4 reactions, press to react"
+        },
+        {
+          "emoji": "thumbsdown",
+          "count": 41,
+          "label": "thumbsdown, 41 reactions, press to react"
+        },
+        {
+          "emoji": "people hugging",
+          "count": 3,
+          "label": "people hugging, 3 reactions, press to react"
+        },
+        {
+          "emoji": "eyes",
+          "count": 1,
+          "label": "eyes, 1 reaction, press to react"
+        },
+        {
+          "emoji": "thumbsup",
+          "count": 5,
+          "label": "thumbsup, 5 reactions, press to react"
+        },
+        {
+          "emoji": "thumbsup",
+          "count": 1,
+          "label": "thumbsup, 1 reaction, press to react"
+        },
+        {
+          "emoji": "thumbsup",
+          "count": 3,
+          "label": "thumbsup, 3 reactions, press to react"
+        },
+        {
+          "emoji": "100",
+          "count": 2,
+          "label": "100, 2 reactions, press to react"
+        }
+      ],
+      "reactionLabels": [
+        "thumbsup, 4 reactions, press to react",
+        "heart, 4 reactions, press to react",
+        "thumbsdown, 41 reactions, press to react",
+        "people hugging, 3 reactions, press to react",
+        "eyes, 1 reaction, press to react",
+        "thumbsup, 5 reactions, press to react",
+        "thumbsup, 1 reaction, press to react",
+        "thumbsup, 3 reactions, press to react",
+        "100, 2 reactions, press to react"
+      ],
+      "scrapeStatus": "verified",
+      "checkedAt": "2026-05-24T16:36:29.371Z"
+    },
+    {
+      "subnet": "ش・chutes・64",
+      "channelName": "ش・chutes・64",
+      "channelId": "1320739778534047785",
+      "messageId": "1508073852012593192",
+      "messageUrl": "https://discord.com/channels/799672011265015819/1320739778534047785/1508073852012593192",
+      "up": 34,
+      "down": 0,
+      "reactions": [
+        {
+          "emoji": "thumbsup",
+          "count": 34,
+          "label": "thumbsup, 34 reactions, press to react"
+        },
+        {
+          "emoji": "cheems",
+          "count": 3,
+          "label": "cheems, 3 reactions, press to react"
+        },
+        {
+          "emoji": "joy",
+          "count": 1,
+          "label": "joy, 1 reaction, press to react"
+        }
+      ],
+      "reactionLabels": [
+        "thumbsup, 34 reactions, press to react",
+        "cheems, 3 reactions, press to react",
+        "joy, 1 reaction, press to react"
+      ],
+      "scrapeStatus": "verified",
+      "checkedAt": "2026-05-24T16:36:53.302Z"
+    },
+    {
+      "subnet": "ض・ninja・66",
+      "channelName": "ض・ninja・66",
+      "channelId": "1486739181093785600",
+      "messageId": "1508073841820172390",
+      "messageUrl": "https://discord.com/channels/799672011265015819/1486739181093785600/1508073841820172390",
+      "up": 96,
+      "down": 2,
+      "reactions": [
+        {
+          "emoji": "thumbsup",
+          "count": 1,
+          "label": "thumbsup, 1 reaction, press to react"
+        },
+        {
+          "emoji": "thumbsup",
+          "count": 57,
+          "label": "thumbsup, 57 reactions, press to react"
+        },
+        {
+          "emoji": "100",
+          "count": 13,
+          "label": "100, 13 reactions, press to react"
+        },
+        {
+          "emoji": "muscle",
+          "count": 13,
+          "label": "muscle, 13 reactions, press to react"
+        },
+        {
+          "emoji": "trophy",
+          "count": 13,
+          "label": "trophy, 13 reactions, press to react"
+        },
+        {
+          "emoji": "generaldoge",
+          "count": 12,
+          "label": "generaldoge, 12 reactions, press to react"
+        },
+        {
+          "emoji": "star struck",
+          "count": 7,
+          "label": "star struck, 7 reactions, press to react"
+        },
+        {
+          "emoji": "medal",
+          "count": 7,
+          "label": "medal, 7 reactions, press to react"
+        },
+        {
+          "emoji": "ninja",
+          "count": 6,
+          "label": "ninja, 6 reactions, press to react"
+        },
+        {
+          "emoji": "thumbsup",
+          "count": 38,
+          "label": "thumbsup, 38 reactions, press to react"
+        },
+        {
+          "emoji": "thumbsdown",
+          "count": 2,
+          "label": "thumbsdown, 2 reactions, press to react"
+        },
+        {
+          "emoji": "heart eyes",
+          "count": 7,
+          "label": "heart eyes, 7 reactions, press to react"
+        },
+        {
+          "emoji": "100",
+          "count": 9,
+          "label": "100, 9 reactions, press to react"
+        },
+        {
+          "emoji": "generaldoge",
+          "count": 5,
+          "label": "generaldoge, 5 reactions, press to react"
+        },
+        {
+          "emoji": "medal",
+          "count": 6,
+          "label": "medal, 6 reactions, press to react"
+        },
+        {
+          "emoji": "star struck",
+          "count": 4,
+          "label": "star struck, 4 reactions, press to react"
+        },
+        {
+          "emoji": "partying face",
+          "count": 4,
+          "label": "partying face, 4 reactions, press to react"
+        },
+        {
+          "emoji": "trophy",
+          "count": 5,
+          "label": "trophy, 5 reactions, press to react"
+        },
+        {
+          "emoji": "ninja",
+          "count": 8,
+          "label": "ninja, 8 reactions, press to react"
+        },
+        {
+          "emoji": "clap",
+          "count": 4,
+          "label": "clap, 4 reactions, press to react"
+        },
+        {
+          "emoji": "rocket",
+          "count": 7,
+          "label": "rocket, 7 reactions, press to react"
+        },
+        {
+          "emoji": "1",
+          "count": 8,
+          "label": "1, 8 reactions, press to react"
+        },
+        {
+          "emoji": "100",
+          "count": 7,
+          "label": "100, 7 reactions, press to react"
+        },
+        {
+          "emoji": "ninja",
+          "count": 5,
+          "label": "ninja, 5 reactions, press to react"
+        }
+      ],
+      "reactionLabels": [
+        "thumbsup, 1 reaction, press to react",
+        "thumbsup, 57 reactions, press to react",
+        "100, 13 reactions, press to react",
+        "muscle, 13 reactions, press to react",
+        "trophy, 13 reactions, press to react",
+        "generaldoge, 12 reactions, press to react",
+        "star struck, 7 reactions, press to react",
+        "medal, 7 reactions, press to react",
+        "ninja, 6 reactions, press to react",
+        "thumbsup, 38 reactions, press to react",
+        "thumbsdown, 2 reactions, press to react",
+        "heart eyes, 7 reactions, press to react",
+        "100, 9 reactions, press to react",
+        "generaldoge, 5 reactions, press to react",
+        "medal, 6 reactions, press to react",
+        "star struck, 4 reactions, press to react",
+        "partying face, 4 reactions, press to react",
+        "trophy, 5 reactions, press to react",
+        "ninja, 8 reactions, press to react",
+        "clap, 4 reactions, press to react",
+        "rocket, 7 reactions, press to react",
+        "1, 8 reactions, press to react",
+        "100, 7 reactions, press to react",
+        "ninja, 5 reactions, press to react"
+      ],
+      "scrapeStatus": "verified",
+      "checkedAt": "2026-05-24T16:36:57.708Z"
+    },
+    {
+      "subnet": "غ・nexisgen・70",
+      "channelName": "غ・nexisgen・70",
+      "channelId": "1485641858829779015",
+      "messageId": "1508073824594427954",
+      "messageUrl": "https://discord.com/channels/799672011265015819/1485641858829779015/1508073824594427954",
+      "up": 9,
+      "down": 1,
+      "reactions": [
+        {
+          "emoji": "thumbsup",
+          "count": 9,
+          "label": "thumbsup, 9 reactions, press to react"
+        },
+        {
+          "emoji": "thumbsdown",
+          "count": 1,
+          "label": "thumbsdown, 1 reaction, press to react"
+        }
+      ],
+      "reactionLabels": [
+        "thumbsup, 9 reactions, press to react",
+        "thumbsdown, 1 reaction, press to react"
+      ],
+      "scrapeStatus": "verified",
+      "checkedAt": "2026-05-24T16:37:02.142Z"
+    },
+    {
+      "subnet": "ن・byzantium・76",
+      "channelName": "ن・byzantium・76",
+      "channelId": "1474042162877300776",
+      "messageId": "1508073797637640283",
+      "messageUrl": "https://discord.com/channels/799672011265015819/1474042162877300776/1508073797637640283",
+      "up": 1,
+      "down": 4,
+      "reactions": [
+        {
+          "emoji": "rofl",
+          "count": 1,
+          "label": "rofl, 1 reaction, press to react"
+        },
+        {
+          "emoji": "sweat smile",
+          "count": 1,
+          "label": "sweat smile, 1 reaction, press to react"
+        },
+        {
+          "emoji": "thumbsup",
+          "count": 1,
+          "label": "thumbsup, 1 reaction, press to react"
+        },
+        {
+          "emoji": "thumbsdown",
+          "count": 4,
+          "label": "thumbsdown, 4 reactions, press to react"
+        }
+      ],
+      "reactionLabels": [
+        "rofl, 1 reaction, press to react",
+        "sweat smile, 1 reaction, press to react",
+        "thumbsup, 1 reaction, press to react",
+        "thumbsdown, 4 reactions, press to react"
+      ],
+      "scrapeStatus": "verified",
+      "checkedAt": "2026-05-24T16:37:07.095Z"
+    },
+    {
+      "subnet": "ه・liquidity・77",
+      "channelName": "ه・liquidity・77",
+      "channelId": "1351180132295118848",
+      "messageId": "1508073794001047552",
+      "messageUrl": "https://discord.com/channels/799672011265015819/1351180132295118848/1508073794001047552",
+      "up": 4,
+      "down": 1,
+      "reactions": [
+        {
+          "emoji": "thumbsup",
+          "count": 1,
+          "label": "thumbsup, 1 reaction, press to react"
+        },
+        {
+          "emoji": "thumbsdown",
+          "count": 1,
+          "label": "thumbsdown, 1 reaction, press to react"
+        },
+        {
+          "emoji": "thumbsup",
+          "count": 3,
+          "label": "thumbsup, 3 reactions, press to react"
+        }
+      ],
+      "reactionLabels": [
+        "thumbsup, 1 reaction, press to react",
+        "thumbsdown, 1 reaction, press to react",
+        "thumbsup, 3 reactions, press to react"
+      ],
+      "scrapeStatus": "verified",
+      "checkedAt": "2026-05-24T16:37:12.187Z"
+    },
+    {
+      "subnet": "و・vocence・78",
+      "channelName": "و・vocence・78",
+      "channelId": "1493995769601065061",
+      "messageId": "1508073788003188908",
+      "messageUrl": "https://discord.com/channels/799672011265015819/1493995769601065061/1508073788003188908",
+      "up": 9,
+      "down": 1,
+      "reactions": [
+        {
+          "emoji": "rocket",
+          "count": 1,
+          "label": "rocket, 1 reaction, press to react"
+        },
+        {
+          "emoji": "thumbsup",
+          "count": 2,
+          "label": "thumbsup, 2 reactions, press to react"
+        },
+        {
+          "emoji": "thumbsup",
+          "count": 7,
+          "label": "thumbsup, 7 reactions, press to react"
+        },
+        {
+          "emoji": "thumbsdown",
+          "count": 1,
+          "label": "thumbsdown, 1 reaction, press to react"
+        }
+      ],
+      "reactionLabels": [
+        "rocket, 1 reaction, press to react",
+        "thumbsup, 2 reactions, press to react",
+        "thumbsup, 7 reactions, press to react",
+        "thumbsdown, 1 reaction, press to react"
+      ],
+      "scrapeStatus": "verified",
+      "checkedAt": "2026-05-24T16:37:16.841Z"
+    },
+    {
+      "subnet": "ᚦ・cliqueai・83",
+      "channelName": "ᚦ・cliqueai・83",
+      "channelId": "1355560253076410428",
+      "messageId": "1508073767148982382",
+      "messageUrl": "https://discord.com/channels/799672011265015819/1355560253076410428/1508073767148982382",
+      "up": 0,
+      "down": 0,
+      "reactions": [],
+      "reactionLabels": [],
+      "scrapeStatus": "verified",
+      "checkedAt": "2026-05-24T16:37:34.392Z"
+    },
+    {
+      "subnet": "ы・luminar・87",
+      "channelName": "ы・luminar・87",
+      "channelId": "1409555541910355998",
+      "messageId": "1508073748060700805",
+      "messageUrl": "https://discord.com/channels/799672011265015819/1409555541910355998/1508073748060700805",
+      "up": 0,
+      "down": 0,
+      "reactions": [],
+      "reactionLabels": [],
+      "scrapeStatus": "no-visible-reactions",
+      "checkedAt": "2026-05-24T16:37:38.921Z"
+    },
+    {
+      "subnet": "ᛒ・infiniτehash・89",
+      "channelName": "ᛒ・infiniτehash・89",
+      "channelId": "1359592408119120033",
+      "messageId": "1508073740448305242",
+      "messageUrl": "https://discord.com/channels/799672011265015819/1359592408119120033/1508073740448305242",
+      "up": 3,
+      "down": 0,
+      "reactions": [
+        {
+          "emoji": "100",
+          "count": 1,
+          "label": "100, 1 reaction, press to react"
+        },
+        {
+          "emoji": "eyes",
+          "count": 2,
+          "label": "eyes, 2 reactions, press to react"
+        },
+        {
+          "emoji": "white check mark",
+          "count": 1,
+          "label": "white check mark, 1 reaction, press to react"
+        },
+        {
+          "emoji": "thumbsup tone1",
+          "count": 3,
+          "label": "thumbsup tone1, 3 reactions, press to react"
+        }
+      ],
+      "reactionLabels": [
+        "100, 1 reaction, press to react",
+        "eyes, 2 reactions, press to react",
+        "white check mark, 1 reaction, press to react",
+        "thumbsup tone1, 3 reactions, press to react"
+      ],
+      "scrapeStatus": "verified",
+      "checkedAt": "2026-05-24T16:37:43.912Z"
+    },
+    {
+      "subnet": "_・unclaimed・90",
+      "channelName": "_・unclaimed・90",
+      "channelId": "1448063556368076941",
+      "messageId": "1508073734559498252",
+      "messageUrl": "https://discord.com/channels/799672011265015819/1448063556368076941/1508073734559498252",
+      "up": 0,
+      "down": 0,
+      "reactions": [],
+      "reactionLabels": [],
+      "scrapeStatus": "no-visible-reactions",
+      "checkedAt": "2026-05-24T16:37:48.578Z"
+    },
+    {
+      "subnet": "ᚃ・biτcasτ・93",
+      "channelName": "ᚃ・biτcasτ・93",
+      "channelId": "1362489640841380045",
+      "messageId": "1508073721779326986",
+      "messageUrl": "https://discord.com/channels/799672011265015819/1362489640841380045/1508073721779326986",
+      "up": 0,
+      "down": 0,
+      "reactions": [],
+      "reactionLabels": [],
+      "scrapeStatus": "verified",
+      "checkedAt": "2026-05-24T16:37:53.334Z"
+    },
+    {
+      "subnet": "ᚄ・biτsoτa・94",
+      "channelName": "ᚄ・biτsoτa・94",
+      "channelId": "1443001560635281581",
+      "messageId": "1508073719015276564",
+      "messageUrl": "https://discord.com/channels/799672011265015819/1443001560635281581/1508073719015276564",
+      "up": 0,
+      "down": 0,
+      "reactions": [],
+      "reactionLabels": [],
+      "scrapeStatus": "no-visible-reactions",
+      "checkedAt": "2026-05-24T16:37:58.182Z"
+    },
+    {
+      "subnet": "ᚅ・actual・95",
+      "channelName": "ᚅ・actual・95",
+      "channelId": "1364253568961609859",
+      "messageId": "1508073713701228745",
+      "messageUrl": "https://discord.com/channels/799672011265015819/1364253568961609859/1508073713701228745",
+      "up": 0,
+      "down": 0,
+      "reactions": [],
+      "reactionLabels": [],
+      "scrapeStatus": "verified",
+      "checkedAt": "2026-05-24T16:38:17.086Z"
+    },
+    {
+      "subnet": "᚛・veraτhos・96",
+      "channelName": "᚛・veraτhos・96",
+      "channelId": "1480627157406584945",
+      "messageId": "1508073709494079630",
+      "messageUrl": "https://discord.com/channels/799672011265015819/1480627157406584945/1508073709494079630",
+      "up": 6,
+      "down": 0,
+      "reactions": [
+        {
+          "emoji": "100",
+          "count": 2,
+          "label": "100, 2 reactions, press to react"
+        },
+        {
+          "emoji": "100",
+          "count": 1,
+          "label": "100, 1 reaction, press to react"
+        },
+        {
+          "emoji": "thumbsup",
+          "count": 6,
+          "label": "thumbsup, 6 reactions, press to react"
+        }
+      ],
+      "reactionLabels": [
+        "100, 2 reactions, press to react",
+        "100, 1 reaction, press to react",
+        "thumbsup, 6 reactions, press to react"
+      ],
+      "scrapeStatus": "verified",
+      "checkedAt": "2026-05-24T16:38:21.528Z"
+    },
+    {
+      "subnet": "გ・leoma・99",
+      "channelName": "გ・leoma・99",
+      "channelId": "1465791819756339261",
+      "messageId": "1508073693321105418",
+      "messageUrl": "https://discord.com/channels/799672011265015819/1465791819756339261/1508073693321105418",
+      "up": 0,
+      "down": 0,
+      "reactions": [],
+      "reactionLabels": [],
+      "scrapeStatus": "no-visible-reactions",
+      "checkedAt": "2026-05-24T16:38:25.933Z"
+    },
+    {
+      "subnet": "ე・unclaimed・101",
+      "channelName": "ე・unclaimed・101",
+      "channelId": "1368946065738436749",
+      "messageId": "1508073683426607114",
+      "messageUrl": "https://discord.com/channels/799672011265015819/1368946065738436749/1508073683426607114",
+      "up": 0,
+      "down": 0,
+      "reactions": [],
+      "reactionLabels": [],
+      "scrapeStatus": "no-visible-reactions",
+      "checkedAt": "2026-05-24T16:38:30.279Z"
+    },
+    {
+      "subnet": "ա・djinn・103",
+      "channelName": "ա・djinn・103",
+      "channelId": "1465362098971345010",
+      "messageId": "1508073674551460001",
+      "messageUrl": "https://discord.com/channels/799672011265015819/1465362098971345010/1508073674551460001",
+      "up": 0,
+      "down": 0,
+      "reactions": [],
+      "reactionLabels": [],
+      "scrapeStatus": "no-visible-reactions",
+      "checkedAt": "2026-05-24T16:38:34.623Z"
+    },
+    {
+      "subnet": "զ・talkhead・108",
+      "channelName": "զ・talkhead・108",
+      "channelId": "1450185343205904565",
+      "messageId": "1508073648945106945",
+      "messageUrl": "https://discord.com/channels/799672011265015819/1450185343205904565/1508073648945106945",
+      "up": 0,
+      "down": 0,
+      "reactions": [],
+      "reactionLabels": [],
+      "scrapeStatus": "no-visible-reactions",
+      "checkedAt": "2026-05-24T16:38:39.243Z"
+    },
+    {
+      "subnet": "ى・academia・109",
+      "channelName": "ى・academia・109",
+      "channelId": "1455931857873928316",
+      "messageId": "1508073645589659805",
+      "messageUrl": "https://discord.com/channels/799672011265015819/1455931857873928316/1508073645589659805",
+      "up": 1,
+      "down": 1,
+      "reactions": [
+        {
+          "emoji": "coffee",
+          "count": 1,
+          "label": "coffee, 1 reaction, press to react"
+        },
+        {
+          "emoji": "6179zuckerbergcoffee",
+          "count": 1,
+          "label": "6179zuckerbergcoffee, 1 reaction, press to react"
+        },
+        {
+          "emoji": "thumbsdown",
+          "count": 1,
+          "label": "thumbsdown, 1 reaction, press to react"
+        },
+        {
+          "emoji": "thumbsup",
+          "count": 1,
+          "label": "thumbsup, 1 reaction, press to react"
+        },
+        {
+          "emoji": "heart",
+          "count": 1,
+          "label": "heart, 1 reaction, press to react"
+        }
+      ],
+      "reactionLabels": [
+        "coffee, 1 reaction, press to react",
+        "6179zuckerbergcoffee, 1 reaction, press to react",
+        "thumbsdown, 1 reaction, press to react",
+        "thumbsup, 1 reaction, press to react",
+        "heart, 1 reaction, press to react"
+      ],
+      "scrapeStatus": "verified",
+      "checkedAt": "2026-05-24T16:38:57.779Z"
+    },
+    {
+      "subnet": "ѐ・greencompute・110",
+      "channelName": "ѐ・greencompute・110",
+      "channelId": "1465358502628163759",
+      "messageId": "1508073640606957720",
+      "messageUrl": "https://discord.com/channels/799672011265015819/1465358502628163759/1508073640606957720",
+      "up": 3,
+      "down": 9,
+      "reactions": [
+        {
+          "emoji": "cheems",
+          "count": 1,
+          "label": "cheems, 1 reaction, press to react"
+        },
+        {
+          "emoji": "elonmusk",
+          "count": 1,
+          "label": "elonmusk, 1 reaction, press to react"
+        },
+        {
+          "emoji": "thumbsup",
+          "count": 3,
+          "label": "thumbsup, 3 reactions, press to react"
+        },
+        {
+          "emoji": "thumbsdown",
+          "count": 9,
+          "label": "thumbsdown, 9 reactions, press to react"
+        }
+      ],
+      "reactionLabels": [
+        "cheems, 1 reaction, press to react",
+        "elonmusk, 1 reaction, press to react",
+        "thumbsup, 3 reactions, press to react",
+        "thumbsdown, 9 reactions, press to react"
+      ],
+      "scrapeStatus": "verified",
+      "checkedAt": "2026-05-24T16:39:02.203Z"
+    },
+    {
+      "subnet": "ё・oneoneone・111",
+      "channelName": "ё・oneoneone・111",
+      "channelId": "1375215258678857728",
+      "messageId": "1508073635074539620",
+      "messageUrl": "https://discord.com/channels/799672011265015819/1375215258678857728/1508073635074539620",
+      "up": 0,
+      "down": 0,
+      "reactions": [],
+      "reactionLabels": [],
+      "scrapeStatus": "no-visible-reactions",
+      "checkedAt": "2026-05-24T16:39:07.336Z"
+    },
+    {
+      "subnet": "ђ・minoτaur・112",
+      "channelName": "ђ・minoτaur・112",
+      "channelId": "1376603375113863178",
+      "messageId": "1508073630171660350",
+      "messageUrl": "https://discord.com/channels/799672011265015819/1376603375113863178/1508073630171660350",
+      "up": 0,
+      "down": 0,
+      "reactions": [],
+      "reactionLabels": [],
+      "scrapeStatus": "verified",
+      "checkedAt": "2026-05-24T16:39:12.186Z"
+    },
+    {
+      "subnet": "ѓ・tensorusd・113",
+      "channelName": "ѓ・tensorusd・113",
+      "channelId": "1450910875790872700",
+      "messageId": "1508073626249859172",
+      "messageUrl": "https://discord.com/channels/799672011265015819/1450910875790872700/1508073626249859172",
+      "up": 14,
+      "down": 1,
+      "reactions": [
+        {
+          "emoji": "white check mark",
+          "count": 2,
+          "label": "white check mark, 2 reactions, press to react"
+        },
+        {
+          "emoji": "pink heart",
+          "count": 2,
+          "label": "pink heart, 2 reactions, press to react"
+        },
+        {
+          "emoji": "fire",
+          "count": 1,
+          "label": "fire, 1 reaction, press to react"
+        },
+        {
+          "emoji": "thumbsdown",
+          "count": 1,
+          "label": "thumbsdown, 1 reaction, press to react"
+        },
+        {
+          "emoji": "thumbsup",
+          "count": 14,
+          "label": "thumbsup, 14 reactions, press to react"
+        }
+      ],
+      "reactionLabels": [
+        "white check mark, 2 reactions, press to react",
+        "pink heart, 2 reactions, press to react",
+        "fire, 1 reaction, press to react",
+        "thumbsdown, 1 reaction, press to react",
+        "thumbsup, 14 reactions, press to react"
+      ],
+      "scrapeStatus": "verified",
+      "checkedAt": "2026-05-24T16:39:16.653Z"
+    },
+    {
+      "subnet": "ѕ・soulx・115",
+      "channelName": "ѕ・soulx・115",
+      "channelId": "1379143301478744064",
+      "messageId": "1508073617492152340",
+      "messageUrl": "https://discord.com/channels/799672011265015819/1379143301478744064/1508073617492152340",
+      "up": 0,
+      "down": 2,
+      "reactions": [
+        {
+          "emoji": "100",
+          "count": 2,
+          "label": "100, 2 reactions, press to react"
+        },
+        {
+          "emoji": "thumbsdown",
+          "count": 2,
+          "label": "thumbsdown, 2 reactions, press to react"
+        }
+      ],
+      "reactionLabels": [
+        "100, 2 reactions, press to react",
+        "thumbsdown, 2 reactions, press to react"
+      ],
+      "scrapeStatus": "verified",
+      "checkedAt": "2026-05-24T16:39:21.070Z"
+    },
+    {
+      "subnet": "ⴷ・ⴷffine・120",
+      "channelName": "ⴷ・ⴷffine・120",
+      "channelId": "1381987595881414656",
+      "messageId": "1508073595434434600",
+      "messageUrl": "https://discord.com/channels/799672011265015819/1381987595881414656/1508073595434434600",
+      "up": 0,
+      "down": 0,
+      "reactions": [],
+      "reactionLabels": [],
+      "scrapeStatus": "verified",
+      "checkedAt": "2026-05-24T16:39:38.756Z"
+    },
+    {
+      "subnet": "ⲅ・sundae-bar・121",
+      "channelName": "ⲅ・sundae-bar・121",
+      "channelId": "1382818027241738352",
+      "messageId": "1508073590967505007",
+      "messageUrl": "https://discord.com/channels/799672011265015819/1382818027241738352/1508073590967505007",
+      "up": 0,
+      "down": 0,
+      "reactions": [],
+      "reactionLabels": [],
+      "scrapeStatus": "verified",
+      "checkedAt": "2026-05-24T16:39:43.406Z"
+    },
+    {
+      "subnet": "ⲅ・unclaimed・122",
+      "channelName": "ⲅ・unclaimed・122",
+      "channelId": "1507378701111656568",
+      "messageId": "1508073586932580382",
+      "messageUrl": "https://discord.com/channels/799672011265015819/1507378701111656568/1508073586932580382",
+      "up": 13,
+      "down": 2,
+      "reactions": [
+        {
+          "emoji": "100",
+          "count": 1,
+          "label": "100, 1 reaction, press to react"
+        },
+        {
+          "emoji": "thumbsup",
+          "count": 12,
+          "label": "thumbsup, 12 reactions, press to react"
+        },
+        {
+          "emoji": "generaldoge",
+          "count": 4,
+          "label": "generaldoge, 4 reactions, press to react"
+        },
+        {
+          "emoji": "thumbsdown",
+          "count": 2,
+          "label": "thumbsdown, 2 reactions, press to react"
+        },
+        {
+          "emoji": "thumbsup",
+          "count": 1,
+          "label": "thumbsup, 1 reaction, press to react"
+        }
+      ],
+      "reactionLabels": [
+        "100, 1 reaction, press to react",
+        "thumbsup, 12 reactions, press to react",
+        "generaldoge, 4 reactions, press to react",
+        "thumbsdown, 2 reactions, press to react",
+        "thumbsup, 1 reaction, press to react"
+      ],
+      "scrapeStatus": "verified",
+      "checkedAt": "2026-05-24T16:39:48.091Z"
+    },
+    {
+      "subnet": "𑀁・swarm・124",
+      "channelName": "𑀁・swarm・124",
+      "channelId": "1385341501130801172",
+      "messageId": "1508073577100869654",
+      "messageUrl": "https://discord.com/channels/799672011265015819/1385341501130801172/1508073577100869654",
+      "up": 0,
+      "down": 0,
+      "reactions": [],
+      "reactionLabels": [],
+      "scrapeStatus": "no-visible-reactions",
+      "checkedAt": "2026-05-24T16:39:52.696Z"
+    },
+    {
+      "subnet": "𑀅・asτrid・127",
+      "channelName": "𑀅・asτrid・127",
+      "channelId": "1387151679266230323",
+      "messageId": "1508073563079577781",
+      "messageUrl": "https://discord.com/channels/799672011265015819/1387151679266230323/1508073563079577781",
+      "up": 3,
+      "down": 7,
+      "reactions": [
+        {
+          "emoji": "thumbsup",
+          "count": 1,
+          "label": "thumbsup, 1 reaction, press to react"
+        },
+        {
+          "emoji": "ok hand",
+          "count": 1,
+          "label": "ok hand, 1 reaction, press to react"
+        },
+        {
+          "emoji": "thumbsup",
+          "count": 2,
+          "label": "thumbsup, 2 reactions, press to react"
+        },
+        {
+          "emoji": "thumbsdown",
+          "count": 7,
+          "label": "thumbsdown, 7 reactions, press to react"
+        }
+      ],
+      "reactionLabels": [
+        "thumbsup, 1 reaction, press to react",
+        "ok hand, 1 reaction, press to react",
+        "thumbsup, 2 reactions, press to react",
+        "thumbsdown, 7 reactions, press to react"
+      ],
+      "scrapeStatus": "verified",
+      "checkedAt": "2026-05-24T16:39:57.045Z"
+    },
+    {
+      "subnet": "න・byteleap・128",
+      "channelName": "න・byteleap・128",
+      "channelId": "1387438124132733110",
+      "messageId": "1508073533232644206",
+      "messageUrl": "https://discord.com/channels/799672011265015819/1387438124132733110/1508073533232644206",
+      "up": 0,
+      "down": 1,
+      "reactions": [
+        {
+          "emoji": "thumbsdown",
+          "count": 1,
+          "label": "thumbsdown, 1 reaction, press to react"
+        }
+      ],
+      "reactionLabels": [
+        "thumbsdown, 1 reaction, press to react"
+      ],
+      "scrapeStatus": "verified",
+      "checkedAt": "2026-05-24T16:40:01.630Z"
+    }
+  ]
+}

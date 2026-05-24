@@ -1,0 +1,17 @@
+{
+  "name": "SubnetPoll.xyz",
+  "short_name": "SubnetPoll",
+  "description": "Public Bittensor subnet poll reaction dashboard.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#05070c",
+  "theme_color": "#05070c",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "64x64",
+      "type": "image/svg+xml"
+    }
+  ]
+}

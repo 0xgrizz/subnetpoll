@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" role="img" aria-label="SubnetPoll.xyz dashboard preview">
+  <defs>
+    <linearGradient id="panel" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0" stop-color="#111927"/>
+      <stop offset="1" stop-color="#070b12"/>
+    </linearGradient>
+    <pattern id="grid" width="44" height="44" patternUnits="userSpaceOnUse">
+      <path d="M44 0H0V44" fill="none" stroke="#ffffff" stroke-opacity=".045"/>
+    </pattern>
+  </defs>
+  <rect width="1200" height="630" fill="#05070c"/>
+  <rect width="1200" height="630" fill="url(#grid)"/>
+  <rect x="54" y="54" width="1092" height="522" rx="16" fill="url(#panel)" stroke="#222c3e" stroke-width="2"/>
+  <text x="90" y="135" font-family="Inter, Arial, sans-serif" font-size="30" font-weight="900" fill="#8c96a8">BITTENSOR DISCORD POLL</text>
+  <text x="90" y="220" font-family="Inter, Arial, sans-serif" font-size="86" font-weight="950" fill="#f7fbff">SubnetPoll.xyz</text>
+  <text x="92" y="275" font-family="Inter, Arial, sans-serif" font-size="31" font-weight="800" fill="#8c96a8">Global subnet consensus, reaction volume, and contested signals.</text>
+  <g transform="translate(88 342)">
+    <rect width="250" height="112" rx="12" fill="#070b12" stroke="#222c3e"/>
+    <text x="24" y="44" font-family="Inter, Arial, sans-serif" font-size="22" font-weight="900" fill="#8c96a8">LEGIT THUMBS</text>
+    <text x="24" y="89" font-family="Inter, Arial, sans-serif" font-size="45" font-weight="950" fill="#42f36f">1,004</text>
+  </g>
+  <g transform="translate(362 342)">
+    <rect width="250" height="112" rx="12" fill="#070b12" stroke="#222c3e"/>
+    <text x="24" y="44" font-family="Inter, Arial, sans-serif" font-size="22" font-weight="900" fill="#8c96a8">BUNK THUMBS</text>
+    <text x="24" y="89" font-family="Inter, Arial, sans-serif" font-size="45" font-weight="950" fill="#ff465b">480</text>
+  </g>
+  <g transform="translate(636 342)">
+    <rect width="250" height="112" rx="12" fill="#070b12" stroke="#222c3e"/>
+    <text x="24" y="44" font-family="Inter, Arial, sans-serif" font-size="22" font-weight="900" fill="#8c96a8">NET SIGNAL</text>
+    <text x="24" y="89" font-family="Inter, Arial, sans-serif" font-size="45" font-weight="950" fill="#f7fbff">+524</text>
+  </g>
+  <g transform="translate(916 122)">
+    <circle cx="48" cy="64" r="48" fill="#42f36f"/>
+    <circle cx="132" cy="136" r="62" fill="#ff465b"/>
+    <circle cx="80" cy="226" r="36" fill="#65a8ff"/>
+    <circle cx="156" cy="282" r="74" fill="#42f36f"/>
+    <circle cx="28" cy="324" r="28" fill="#ff465b"/>
+    <text x="48" y="76" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="21" font-weight="950" fill="#05070c">SN</text>
+    <text x="132" y="151" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="25" font-weight="950" fill="#05070c">MAP</text>
+    <text x="156" y="300" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="30" font-weight="950" fill="#05070c">POLL</text>
+  </g>
+</svg>

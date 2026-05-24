@@ -1,0 +1,187 @@
+{
+  "batch": 5,
+  "results": [
+    {
+      "subnet": "ى・academia・109",
+      "channelName": "ى・academia・109",
+      "channelId": "1455931857873928316",
+      "messageId": "1508073645589659805",
+      "messageUrl": "https://discord.com/channels/799672011265015819/1455931857873928316/1508073645589659805",
+      "up": 1,
+      "down": 1,
+      "reactions": [
+        {
+          "emoji": "coffee",
+          "count": 1,
+          "label": "coffee, 1 reaction, press to react"
+        },
+        {
+          "emoji": "6179zuckerbergcoffee",
+          "count": 1,
+          "label": "6179zuckerbergcoffee, 1 reaction, press to react"
+        },
+        {
+          "emoji": "thumbsdown",
+          "count": 1,
+          "label": "thumbsdown, 1 reaction, press to react"
+        },
+        {
+          "emoji": "thumbsup",
+          "count": 1,
+          "label": "thumbsup, 1 reaction, press to react"
+        },
+        {
+          "emoji": "heart",
+          "count": 1,
+          "label": "heart, 1 reaction, press to react"
+        }
+      ],
+      "reactionLabels": [
+        "coffee, 1 reaction, press to react",
+        "6179zuckerbergcoffee, 1 reaction, press to react",
+        "thumbsdown, 1 reaction, press to react",
+        "thumbsup, 1 reaction, press to react",
+        "heart, 1 reaction, press to react"
+      ],
+      "scrapeStatus": "verified",
+      "checkedAt": "2026-05-24T16:38:57.779Z"
+    },
+    {
+      "subnet": "ѐ・greencompute・110",
+      "channelName": "ѐ・greencompute・110",
+      "channelId": "1465358502628163759",
+      "messageId": "1508073640606957720",
+      "messageUrl": "https://discord.com/channels/799672011265015819/1465358502628163759/1508073640606957720",
+      "up": 3,
+      "down": 9,
+      "reactions": [
+        {
+          "emoji": "cheems",
+          "count": 1,
+          "label": "cheems, 1 reaction, press to react"
+        },
+        {
+          "emoji": "elonmusk",
+          "count": 1,
+          "label": "elonmusk, 1 reaction, press to react"
+        },
+        {
+          "emoji": "thumbsup",
+          "count": 3,
+          "label": "thumbsup, 3 reactions, press to react"
+        },
+        {
+          "emoji": "thumbsdown",
+          "count": 9,
+          "label": "thumbsdown, 9 reactions, press to react"
+        }
+      ],
+      "reactionLabels": [
+        "cheems, 1 reaction, press to react",
+        "elonmusk, 1 reaction, press to react",
+        "thumbsup, 3 reactions, press to react",
+        "thumbsdown, 9 reactions, press to react"
+      ],
+      "scrapeStatus": "verified",
+      "checkedAt": "2026-05-24T16:39:02.203Z"
+    },
+    {
+      "subnet": "ё・oneoneone・111",
+      "channelName": "ё・oneoneone・111",
+      "channelId": "1375215258678857728",
+      "messageId": "1508073635074539620",
+      "messageUrl": "https://discord.com/channels/799672011265015819/1375215258678857728/1508073635074539620",
+      "up": 0,
+      "down": 0,
+      "reactions": [],
+      "reactionLabels": [],
+      "scrapeStatus": "no-visible-reactions",
+      "checkedAt": "2026-05-24T16:39:07.336Z"
+    },
+    {
+      "subnet": "ђ・minoτaur・112",
+      "channelName": "ђ・minoτaur・112",
+      "channelId": "1376603375113863178",
+      "messageId": "1508073630171660350",
+      "messageUrl": "https://discord.com/channels/799672011265015819/1376603375113863178/1508073630171660350",
+      "up": 0,
+      "down": 0,
+      "reactions": [],
+      "reactionLabels": [],
+      "scrapeStatus": "verified",
+      "checkedAt": "2026-05-24T16:39:12.186Z"
+    },
+    {
+      "subnet": "ѓ・tensorusd・113",
+      "channelName": "ѓ・tensorusd・113",
+      "channelId": "1450910875790872700",
+      "messageId": "1508073626249859172",
+      "messageUrl": "https://discord.com/channels/799672011265015819/1450910875790872700/1508073626249859172",
+      "up": 14,
+      "down": 1,
+      "reactions": [
+        {
+          "emoji": "white check mark",
+          "count": 2,
+          "label": "white check mark, 2 reactions, press to react"
+        },
+        {
+          "emoji": "pink heart",
+          "count": 2,
+          "label": "pink heart, 2 reactions, press to react"
+        },
+        {
+          "emoji": "fire",
+          "count": 1,
+          "label": "fire, 1 reaction, press to react"
+        },
+        {
+          "emoji": "thumbsdown",
+          "count": 1,
+          "label": "thumbsdown, 1 reaction, press to react"
+        },
+        {
+          "emoji": "thumbsup",
+          "count": 14,
+          "label": "thumbsup, 14 reactions, press to react"
+        }
+      ],
+      "reactionLabels": [
+        "white check mark, 2 reactions, press to react",
+        "pink heart, 2 reactions, press to react",
+        "fire, 1 reaction, press to react",
+        "thumbsdown, 1 reaction, press to react",
+        "thumbsup, 14 reactions, press to react"
+      ],
+      "scrapeStatus": "verified",
+      "checkedAt": "2026-05-24T16:39:16.653Z"
+    },
+    {
+      "subnet": "ѕ・soulx・115",
+      "channelName": "ѕ・soulx・115",
+      "channelId": "1379143301478744064",
+      "messageId": "1508073617492152340",
+      "messageUrl": "https://discord.com/channels/799672011265015819/1379143301478744064/1508073617492152340",
+      "up": 0,
+      "down": 2,
+      "reactions": [
+        {
+          "emoji": "100",
+          "count": 2,
+          "label": "100, 2 reactions, press to react"
+        },
+        {
+          "emoji": "thumbsdown",
+          "count": 2,
+          "label": "thumbsdown, 2 reactions, press to react"
+        }
+      ],
+      "reactionLabels": [
+        "100, 2 reactions, press to react",
+        "thumbsdown, 2 reactions, press to react"
+      ],
+      "scrapeStatus": "verified",
+      "checkedAt": "2026-05-24T16:39:21.070Z"
+    }
+  ]
+}
