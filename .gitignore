@@ -11,3 +11,4 @@ yarn-error.log*
 *.secret
 *.token
 secrets/
+.vercel
