@@ -5,7 +5,7 @@ Public static dashboard for the Discord prompt:
 > Miners, thumbs up 👍 if this subnet is legit and 👎 if this subnet is bunk.
 
 Open `index.html` in a browser to see the dashboard. It reads `data.js`, so it also works from `file://` without a build step.
-The page also reads `market-data.js` for current Taostats subnet market metrics: Flow 1M and incentive burn.
+The page also reads `market-data.js` for current Taostats subnet market metrics: TAO Flow and incentive burn.
 
 ## Public Release
 
@@ -46,7 +46,7 @@ Refresh market data with:
 npm run refresh:market
 ```
 
-That pulls the same public Taostats `/subnets` table payload used on the website. The dashboard stores `net_flow_30_days` as `taoFlow`, divided by `1e9` so the values display in TAO. This is the Taostats table column labeled `Flow 1M`.
+That pulls the same public Taostats `/subnets` table payload used on the website. The dashboard stores `net_flow_7_days` as `taoFlow`, divided by `1e9` so the values display in TAO. This is the Taostats table column labeled `Flow 1W`, and it matches the visible TAO Flow value used for the public dashboard comparison.
 
 - `market-data.js`
 - `exports/subnet-market-data-latest.json`

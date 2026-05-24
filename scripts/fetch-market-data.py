@@ -164,7 +164,7 @@ def build_market_item(row: dict[str, Any]) -> dict[str, Any]:
         "netuid": netuid,
         "name": to_str(row.get("subnet_name") or row.get("name")),
         "symbol": to_str(row.get("symbol")),
-        "taoFlow": round(to_tao(row.get("net_flow_30_days")), 12),
+        "taoFlow": round(to_tao(row.get("net_flow_7_days")), 12),
         "taoFlowBlock": to_int(row.get("block_number")),
         "burnEmissionPct": round(incentive_burn, 6),
         "ownerEmission": None,
@@ -235,9 +235,9 @@ def main() -> None:
             "method": "taostats-public-subnets-page",
             "url": TAOSTATS_SUBNETS_URL,
             "queryKey": "dtaoSubnetPools",
-            "taoFlowField": "net_flow_30_days",
-            "taoFlowTimeframe": "1 month",
-            "taoFlowTableLabel": "Flow 1M",
+            "taoFlowField": "net_flow_7_days",
+            "taoFlowTimeframe": "7 days",
+            "taoFlowTableLabel": "Flow 1W",
             "taoFlowUnit": "TAO",
             "conversion": "rao values divided by 1e9",
             "burnEmissionPct": "Taostats incentive_burn displayed as a percentage",
@@ -258,7 +258,7 @@ def main() -> None:
     }
     write_outputs(payload)
     print(
-        f"Wrote {len(items)} Taostats Flow 1M rows at block "
+        f"Wrote {len(items)} Taostats TAO Flow rows at block "
         f"{payload['summary']['flowBlock']} to market-data.js"
     )
 

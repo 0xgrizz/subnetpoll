@@ -668,8 +668,8 @@ function renderIntelligence() {
         <span><b>${formatNumber(missingLinks)}</b> missing targets</span>
         <span><b>${summary.statusCounts["no-votes"]}</b> true empty</span>
         <span><b>${formatPercent(marketCoverage, 0)}</b> market match</span>
-        <span><b>${flowBlock}</b> Flow 1M block</span>
-        <span><b>${formatSignedTao(marketSummary.netFlow, 3)}</b> net Flow 1M</span>
+        <span><b>${flowBlock}</b> TAO Flow block</span>
+        <span><b>${formatSignedTao(marketSummary.netFlow, 3)}</b> net TAO Flow</span>
         <span><b>${highBurnCount}</b> high incentive burn</span>
       </div>
       ${topCoVe ? `
@@ -769,7 +769,7 @@ const metricDefinitions = {
     format: (value) => formatNumber(Math.round(value))
   },
   "tao-flow": {
-    label: "TAO Flow 1M",
+    label: "TAO Flow",
     value: (item) => item.hasMarket ? item.taoFlow : null,
     format: (value) => formatSignedTao(value, 4)
   },
@@ -978,7 +978,7 @@ function renderMarketTags(item, variant = "row") {
 
   return `
     <div class="market-tags market-tags-${variant}">
-      <span class="market-tag flow-${getFlowTone(item)}">Flow 1M ${formatSignedTao(item.taoFlow, 4)}</span>
+      <span class="market-tag flow-${getFlowTone(item)}">TAO Flow ${formatSignedTao(item.taoFlow, 4)}</span>
       <span class="market-tag burn">${formatBurnEmission(item)} incentive burn</span>
       <span class="market-tag hype-${getHypeTone(item)}">Hype ${formatNumber(item.hypeScore)}</span>
     </div>
@@ -989,7 +989,7 @@ function renderMarketDetail(item) {
   if (!item.hasMarket) {
     return `
       <div class="detail-market">
-        <span><strong>n/a</strong><em>TAO Flow 1M</em></span>
+        <span><strong>n/a</strong><em>TAO Flow</em></span>
         <span><strong>n/a</strong><em>Incentive burn %</em></span>
         <span><strong>n/a</strong><em>Burn cost</em></span>
       </div>
@@ -998,7 +998,7 @@ function renderMarketDetail(item) {
 
   return `
     <div class="detail-market">
-      <span><strong>${formatSignedTao(item.taoFlow, 4)}</strong><em>TAO Flow 1M</em></span>
+      <span><strong>${formatSignedTao(item.taoFlow, 4)}</strong><em>TAO Flow</em></span>
       <span><strong>${formatBurnEmission(item)}</strong><em>Incentive burn %</em></span>
       <span><strong>${formatTao(item.market.burnCost, 4)}</strong><em>Burn cost</em></span>
     </div>
