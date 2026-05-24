@@ -4,25 +4,25 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>ThumbsFlow.io</title>
-    <meta name="description" content="A public Bittensor subnet reaction dashboard matching Discord poll signals with 1M metagraph TAO flow and burn-emission share.">
+    <meta name="description" content="A public Bittensor subnet reaction dashboard matching Discord poll signals with Taostats Flow 1M and incentive burn.">
     <meta name="theme-color" content="#05070c">
     <link rel="canonical" href="https://thumbsflow.io/">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="ThumbsFlow.io">
     <meta property="og:title" content="ThumbsFlow.io">
-    <meta property="og:description" content="Live-style bubble screener for Bittensor subnet poll reactions, 1M TAO flow, and burn-emission share.">
+    <meta property="og:description" content="Live-style bubble screener for Bittensor subnet poll reactions, Taostats Flow 1M, and incentive burn.">
     <meta property="og:url" content="https://thumbsflow.io/">
     <meta property="og:image" content="https://thumbsflow.io/og-card.svg">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="ThumbsFlow.io">
-    <meta name="twitter:description" content="A fast public overview of Bittensor subnet poll consensus and 1M metagraph flow.">
+    <meta name="twitter:description" content="A fast public overview of Bittensor subnet poll consensus and Taostats Flow 1M.">
     <meta name="twitter:image" content="https://thumbsflow.io/og-card.svg">
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
     <link rel="manifest" href="site.webmanifest">
-    <link rel="stylesheet" href="styles.css?v=17">
-    <script src="data.js?v=17" defer></script>
-    <script src="market-data.js?v=17" defer></script>
-    <script src="app.js?v=17" defer></script>
+    <link rel="stylesheet" href="styles.css?v=18">
+    <script src="data.js?v=18" defer></script>
+    <script src="market-data.js?v=18" defer></script>
+    <script src="app.js?v=18" defer></script>
   </head>
   <body>
     <a class="skip-link" href="#bubbleMap">Skip to bubble map</a>
@@ -88,7 +88,7 @@
               <button class="sort-chip" type="button" data-sort="bunk-ratio" aria-pressed="false">Bunk %</button>
               <button class="sort-chip" type="button" data-sort="votes" aria-pressed="false">Thumbs</button>
               <button class="sort-chip" type="button" data-sort="conviction" aria-pressed="false">Conviction</button>
-              <button class="sort-chip" type="button" data-sort="tao-flow" aria-pressed="false">1M Flow</button>
+              <button class="sort-chip" type="button" data-sort="tao-flow" aria-pressed="false">Flow 1M</button>
               <button class="sort-chip" type="button" data-sort="burn-emission" aria-pressed="false">Burn %</button>
               <button class="sort-chip" type="button" data-sort="hype" aria-pressed="false">Hype</button>
               <button class="sort-chip" type="button" data-sort="name" aria-pressed="false">Name</button>
@@ -109,10 +109,10 @@
 
           <div class="control-group">
             <span>Market</span>
-            <div class="market-toggle" role="group" aria-label="Filter by metagraph market state">
+            <div class="market-toggle" role="group" aria-label="Filter by Taostats market state">
               <button class="market-chip is-active" type="button" data-market-filter="all" aria-pressed="true">All</button>
-              <button class="market-chip" type="button" data-market-filter="flow-positive" aria-pressed="false">1M +</button>
-              <button class="market-chip" type="button" data-market-filter="flow-negative" aria-pressed="false">1M -</button>
+              <button class="market-chip" type="button" data-market-filter="flow-positive" aria-pressed="false">Flow +</button>
+              <button class="market-chip" type="button" data-market-filter="flow-negative" aria-pressed="false">Flow -</button>
               <button class="market-chip" type="button" data-market-filter="burn-high" aria-pressed="false">Burn high</button>
             </div>
           </div>
@@ -122,7 +122,7 @@
             <div class="size-toggle" role="group" aria-label="Bubble size">
               <button class="size-chip is-active" type="button" data-size-by="votes" aria-pressed="true">Volume</button>
               <button class="size-chip" type="button" data-size-by="signal" aria-pressed="false">Signal</button>
-              <button class="size-chip" type="button" data-size-by="tao-flow" aria-pressed="false" aria-label="Size by 1 month TAO flow">Flow</button>
+              <button class="size-chip" type="button" data-size-by="tao-flow" aria-pressed="false" aria-label="Size by Taostats Flow 1M">Flow</button>
               <button class="size-chip" type="button" data-size-by="hype" aria-pressed="false">Hype</button>
             </div>
           </div>
@@ -162,15 +162,15 @@
       <section class="market-board" aria-label="Subnet bubble map">
         <div class="board-head">
           <div>
-            <p class="eyebrow">Poll + metagraph heatmap</p>
+            <p class="eyebrow">Poll + Taostats heatmap</p>
             <h2>Consensus Map</h2>
           </div>
           <div class="board-meta">
             <span><i class="legend-dot legit"></i>Legit share</span>
             <span><i class="legend-dot bunk"></i>Bunk share</span>
             <span><i class="legend-dot tie"></i>Balanced</span>
-            <span><i class="legend-dot flow"></i>1M TAO flow</span>
-            <span><i class="legend-dot burn"></i>Burn emission</span>
+            <span><i class="legend-dot flow"></i>Flow 1M</span>
+            <span><i class="legend-dot burn"></i>Incentive burn</span>
             <span><i class="legend-dot quiet"></i>No volume</span>
           </div>
         </div>
@@ -202,7 +202,7 @@
         <div class="board-head">
           <div>
             <p class="eyebrow">Correlation lab</p>
-            <h2>Thumbs × 1M Flow × Burn</h2>
+            <h2>Thumbs × Flow 1M × Burn</h2>
           </div>
           <p class="analytics-summary" id="analyticsSummary"></p>
         </div>
@@ -214,7 +214,7 @@
               <button class="axis-chip" type="button" data-axis="x" data-metric="thumbs" aria-pressed="false">Thumbs</button>
               <button class="axis-chip is-active" type="button" data-axis="x" data-metric="support" aria-pressed="true">Legit %</button>
               <button class="axis-chip" type="button" data-axis="x" data-metric="hype" aria-pressed="false">Hype</button>
-              <button class="axis-chip" type="button" data-axis="x" data-metric="tao-flow" aria-pressed="false">1M Flow</button>
+              <button class="axis-chip" type="button" data-axis="x" data-metric="tao-flow" aria-pressed="false">Flow 1M</button>
               <button class="axis-chip" type="button" data-axis="x" data-metric="burn-emission" aria-pressed="false">Burn %</button>
               <button class="axis-chip" type="button" data-axis="x" data-metric="burn-cost" aria-pressed="false">Burn cost</button>
             </div>
@@ -225,7 +225,7 @@
               <button class="axis-chip" type="button" data-axis="y" data-metric="thumbs" aria-pressed="false">Thumbs</button>
               <button class="axis-chip" type="button" data-axis="y" data-metric="support" aria-pressed="false">Legit %</button>
               <button class="axis-chip" type="button" data-axis="y" data-metric="hype" aria-pressed="false">Hype</button>
-              <button class="axis-chip is-active" type="button" data-axis="y" data-metric="tao-flow" aria-pressed="true">1M Flow</button>
+              <button class="axis-chip is-active" type="button" data-axis="y" data-metric="tao-flow" aria-pressed="true">Flow 1M</button>
               <button class="axis-chip" type="button" data-axis="y" data-metric="burn-emission" aria-pressed="false">Burn %</button>
               <button class="axis-chip" type="button" data-axis="y" data-metric="burn-cost" aria-pressed="false">Burn cost</button>
             </div>

@@ -5,7 +5,7 @@ Public static dashboard for the Discord prompt:
 > Miners, thumbs up 👍 if this subnet is legit and 👎 if this subnet is bunk.
 
 Open `index.html` in a browser to see the dashboard. It reads `data.js`, so it also works from `file://` without a build step.
-The page also reads `market-data.js` for current Finney metagraph metrics: 1 month TAO flow and owner/burn-coldkey emission share.
+The page also reads `market-data.js` for current Taostats subnet market metrics: Flow 1M and incentive burn.
 
 ## Public Release
 
@@ -16,7 +16,7 @@ The site is packaged for `https://thumbsflow.io/` with:
 - `site.webmanifest`, `favicon.svg`, and `og-card.svg` for public link previews and install metadata.
 - `_headers` for static host security headers and no-cache reaction data.
 
-The dashboard itself is intentionally build-free. Deploy the repository root to any static host and point `thumbsflow.io` at that host. Keep `data.js` and `market-data.js` uncached or cache-busted so refreshed Discord counts and metagraph metrics appear quickly.
+The dashboard itself is intentionally build-free. Deploy the repository root to any static host and point `thumbsflow.io` at that host. Keep `data.js` and `market-data.js` uncached or cache-busted so refreshed Discord counts and Taostats market metrics appear quickly.
 
 Live release:
 
@@ -46,14 +46,13 @@ Refresh market data with:
 npm run refresh:market
 ```
 
-That pulls 1 month / 30 day EMA TAO flow with `Subtensor.get_all_ema_tao_inflow()` and metagraph rows with `Subtensor.get_all_metagraphs_info()`. If the bulk metagraph RPC times out, the script falls back to `Subtensor.get_metagraph_info(netuid)` for every subnet and writes:
+That pulls the same public Taostats `/subnets` table payload used on the website. The dashboard stores `net_flow_30_days` as `taoFlow`, divided by `1e9` so the values display in TAO. This is the Taostats table column labeled `Flow 1M`.
 
 - `market-data.js`
 - `exports/subnet-market-data-latest.json`
 - `exports/subnet-market-data-latest.csv`
 
-`burnEmissionPct` is computed as the subnet owner coldkey's share of total metagraph emission for that subnet.
-Taostats documents Tao Flow and Net Tao Flow as 30 day exponential moving averages used in the emission logic. Their API can be used as an alternate hosted source when a Taostats API key is available: <https://docs.taostats.io/docs/tao-flow> and <https://docs.taostats.io/docs/the-taostats-api>.
+`burnEmissionPct` is Taostats `incentive_burn` displayed as a percentage. The Taostats API can be used as an alternate hosted source when a Taostats API key is available: <https://docs.taostats.io/docs/the-taostats-api>.
 
 ## Secret Safety
 

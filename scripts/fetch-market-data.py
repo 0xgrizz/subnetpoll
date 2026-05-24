@@ -5,60 +5,26 @@ from __future__ import annotations
 import csv
 import json
 import math
-import os
-import signal
+import re
+import ssl
 import sys
-import time
-from contextlib import contextmanager
+import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
 try:
     import certifi
-
-    os.environ.setdefault("SSL_CERT_FILE", certifi.where())
 except Exception:
-    pass
-
-import bittensor as bt
+    certifi = None
 
 
 ROOT = Path(__file__).resolve().parents[1]
 EXPORTS = ROOT / "exports"
-DEFAULT_ENDPOINTS = [
-    os.environ.get("BITTENSOR_ENDPOINT", "").strip(),
-    "finney",
-    "wss://bittensor-finney.api.onfinality.io/public-ws",
-]
-
-
-class ChainTimeout(TimeoutError):
-    pass
-
-
-@contextmanager
-def deadline(seconds: int):
-    previous_handler = signal.getsignal(signal.SIGALRM)
-
-    def handle_timeout(_signum: int, _frame: Any) -> None:
-        raise ChainTimeout(f"chain call exceeded {seconds}s")
-
-    signal.signal(signal.SIGALRM, handle_timeout)
-    signal.alarm(seconds)
-    try:
-        yield
-    finally:
-        signal.alarm(0)
-        signal.signal(signal.SIGALRM, previous_handler)
-
-
-def call_with_deadline(label: str, seconds: int, callback: Any) -> Any:
-    with deadline(seconds):
-        start = time.time()
-        value = callback()
-        print(f"{label} in {time.time() - start:.1f}s", file=sys.stderr)
-        return value
+TAOSTATS_SUBNETS_URL = "https://taostats.io/subnets"
+TAOSTATS_QUERY_KEY = ["dtaoSubnetPools", {"order": "market_cap_desc"}]
+RAO_PER_TAO = 1_000_000_000
+NEXT_FLIGHT_RE = re.compile(r"self\.__next_f\.push\((.*?)\)</script>", re.S)
 
 
 def utc_now() -> str:
@@ -71,19 +37,23 @@ def finite(value: float | None, fallback: float = 0.0) -> float:
     return value
 
 
-def to_float(value: Any, fallback: float = 0.0) -> float:
-    if value is None:
+def to_float(value: Any, fallback: float | None = 0.0) -> float | None:
+    if value is None or value == "":
         return fallback
     try:
-        return finite(float(value), fallback)
+        number = float(value)
     except Exception:
-        tao = getattr(value, "tao", None)
-        if tao is None:
-            return fallback
-        try:
-            return finite(float(tao), fallback)
-        except Exception:
-            return fallback
+        return fallback
+    if not math.isfinite(number):
+        return fallback
+    return number
+
+
+def to_int(value: Any, fallback: int | None = None) -> int | None:
+    number = to_float(value, None)
+    if number is None:
+        return fallback
+    return int(number)
 
 
 def to_str(value: Any) -> str:
@@ -92,46 +62,120 @@ def to_str(value: Any) -> str:
     return str(value)
 
 
-def flow_record(value: Any) -> tuple[int | None, float]:
-    if isinstance(value, tuple) and len(value) >= 2:
-        block, balance = value[0], value[1]
+def to_tao(value: Any, fallback: float = 0.0) -> float:
+    number = to_float(value, None)
+    if number is None:
+        return fallback
+    return number / RAO_PER_TAO
+
+
+def rounded(value: float | None, digits: int = 12) -> float | None:
+    if value is None or not math.isfinite(value):
+        return None
+    return round(value, digits)
+
+
+def fetch_html(url: str) -> str:
+    headers = {
+        "User-Agent": "Mozilla/5.0 (compatible; ThumbsFlow/1.0; +https://thumbsflow.io)",
+        "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    }
+    request = urllib.request.Request(url, headers=headers)
+    context = None
+    if certifi is not None:
+        context = ssl.create_default_context(cafile=certifi.where())
+
+    with urllib.request.urlopen(request, timeout=60, context=context) as response:
+        return response.read().decode("utf-8", errors="replace")
+
+
+def extract_next_flight(html: str) -> str:
+    chunks: list[str] = []
+    for match in NEXT_FLIGHT_RE.finditer(html):
         try:
-            block_number = int(block)
-        except Exception:
-            block_number = None
-        return block_number, to_float(balance)
-    return None, to_float(value)
+            payload = json.loads(match.group(1))
+        except json.JSONDecodeError:
+            continue
+        if isinstance(payload, list) and len(payload) > 1 and isinstance(payload[1], str):
+            chunks.append(payload[1])
+
+    if not chunks:
+        raise RuntimeError("Taostats page did not include a readable Next.js data stream")
+    return "".join(chunks)
 
 
-def build_market_item(meta: Any, flow: Any) -> dict[str, Any]:
-    emissions = [to_float(value) for value in (getattr(meta, "emission", None) or [])]
-    coldkeys = [to_str(value) for value in (getattr(meta, "coldkeys", None) or [])]
-    owner_coldkey = to_str(getattr(meta, "owner_coldkey", ""))
-    total_neuron_emission = sum(emissions)
-    owner_emission = sum(
-        emission for emission, coldkey in zip(emissions, coldkeys) if coldkey == owner_coldkey
-    )
-    burn_emission_pct = (
-        owner_emission / total_neuron_emission * 100 if total_neuron_emission > 0 else 0
-    )
-    flow_block, tao_flow = flow_record(flow)
+def slice_json_object(text: str, start: int) -> str:
+    depth = 0
+    in_string = False
+    escaped = False
+
+    for index in range(start, len(text)):
+        char = text[index]
+        if in_string:
+            if escaped:
+                escaped = False
+            elif char == "\\":
+                escaped = True
+            elif char == '"':
+                in_string = False
+            continue
+
+        if char == '"':
+            in_string = True
+        elif char == "{":
+            depth += 1
+        elif char == "}":
+            depth -= 1
+            if depth == 0:
+                return text[start : index + 1]
+
+    raise RuntimeError("Could not find the end of the Taostats query payload")
+
+
+def extract_query_payload(flight: str) -> dict[str, Any]:
+    query_key = json.dumps(TAOSTATS_QUERY_KEY, separators=(",", ":"))
+    needle = f'"queryKey":{query_key}'
+    query_index = flight.find(needle)
+    if query_index < 0:
+        raise RuntimeError(f"Could not find Taostats query key {query_key}")
+
+    start = flight.rfind('{"dehydratedAt"', 0, query_index)
+    if start < 0:
+        raise RuntimeError("Could not find the start of the Taostats query payload")
+
+    return json.loads(slice_json_object(flight, start))
+
+
+def fetch_taostats_pools() -> list[dict[str, Any]]:
+    html = fetch_html(TAOSTATS_SUBNETS_URL)
+    flight = extract_next_flight(html)
+    query = extract_query_payload(flight)
+    rows = query.get("state", {}).get("data", {}).get("data")
+    if not isinstance(rows, list):
+        raise RuntimeError("Taostats query payload did not contain subnet pool rows")
+    return [row for row in rows if isinstance(row, dict)]
+
+
+def build_market_item(row: dict[str, Any]) -> dict[str, Any]:
+    netuid = int(row["netuid"])
+    incentive_burn = finite(to_float(row.get("incentive_burn"), 0.0), 0.0) * 100
 
     return {
-        "netuid": int(getattr(meta, "netuid")),
-        "name": to_str(getattr(meta, "name", "")),
-        "symbol": to_str(getattr(meta, "symbol", "")),
-        "taoFlow": round(tao_flow, 12),
-        "taoFlowBlock": flow_block,
-        "burnEmissionPct": round(burn_emission_pct, 6),
-        "ownerEmission": round(owner_emission, 12),
-        "totalNeuronEmission": round(total_neuron_emission, 12),
-        "subnetEmission": round(to_float(getattr(meta, "subnet_emission", None)), 12),
-        "burnCost": round(to_float(getattr(meta, "burn", None)), 12),
-        "taoIn": round(to_float(getattr(meta, "tao_in", None)), 12),
-        "alphaIn": round(to_float(getattr(meta, "alpha_in", None)), 12),
-        "alphaOut": round(to_float(getattr(meta, "alpha_out", None)), 12),
-        "movingPrice": round(to_float(getattr(meta, "moving_price", None)), 12),
-        "subnetVolume": round(to_float(getattr(meta, "subnet_volume", None)), 12),
+        "netuid": netuid,
+        "name": to_str(row.get("subnet_name") or row.get("name")),
+        "symbol": to_str(row.get("symbol")),
+        "taoFlow": round(to_tao(row.get("net_flow_30_days")), 12),
+        "taoFlowBlock": to_int(row.get("block_number")),
+        "burnEmissionPct": round(incentive_burn, 6),
+        "ownerEmission": None,
+        "totalNeuronEmission": rounded(to_float(row.get("emission"), None), 12),
+        "subnetEmission": rounded(to_float(row.get("projected_emission"), None), 12),
+        "burnCost": round(to_tao(row.get("neuron_registration_cost")), 12),
+        "taoIn": round(to_tao(row.get("total_tao")), 12),
+        "alphaIn": round(to_tao(row.get("alpha_in_pool")), 12),
+        "alphaOut": round(to_tao(row.get("alpha_staked")), 12),
+        "movingPrice": rounded(to_float(row.get("price") or row.get("last_price"), None), 12),
+        "subnetVolume": round(to_tao(row.get("tao_volume_24_hr")), 12),
     }
 
 
@@ -165,83 +209,22 @@ def write_outputs(payload: dict[str, Any]) -> None:
         "subnetVolume",
     ]
     with csv_path.open("w", newline="", encoding="utf-8") as handle:
-        writer = csv.DictWriter(handle, fieldnames=fields)
+        writer = csv.DictWriter(handle, fieldnames=fields, lineterminator="\n")
         writer.writeheader()
         writer.writerows(payload["items"])
 
 
-def active_endpoints() -> list[str]:
-    seen: set[str] = set()
-    endpoints: list[str] = []
-    for endpoint in DEFAULT_ENDPOINTS:
-        if endpoint and endpoint not in seen:
-            seen.add(endpoint)
-            endpoints.append(endpoint)
-    return endpoints
-
-
-def fetch_subnet_netuids(subtensor: Any) -> list[int]:
-    infos = call_with_deadline("Fetched subnet registry", 45, subtensor.get_all_subnets_info)
-    return sorted(int(info.netuid) for info in infos if int(info.netuid) > 0)
-
-
-def fetch_bulk_metagraphs(subtensor: Any) -> list[Any]:
-    metagraphs = call_with_deadline("Fetched bulk metagraphs", 35, subtensor.get_all_metagraphs_info)
-    return [meta for meta in metagraphs if int(meta.netuid) > 0]
-
-
-def fetch_metagraphs_per_subnet(subtensor: Any, netuids: list[int]) -> list[Any]:
-    metagraphs: list[Any] = []
-    for index, netuid in enumerate(netuids, start=1):
-        try:
-            meta = call_with_deadline(
-                f"Fetched metagraph {netuid} ({index}/{len(netuids)})",
-                18,
-                lambda netuid=netuid: subtensor.get_metagraph_info(netuid),
-            )
-            metagraphs.append(meta)
-        except Exception as exc:
-            print(f"Metagraph {netuid} failed once: {exc}", file=sys.stderr)
-            meta = call_with_deadline(
-                f"Retried metagraph {netuid}",
-                24,
-                lambda netuid=netuid: subtensor.get_metagraph_info(netuid),
-            )
-            metagraphs.append(meta)
-    return metagraphs
-
-
-def fetch_chain_data() -> tuple[str, dict[int, Any], list[Any], str]:
-    last_error: Exception | None = None
-    for endpoint in active_endpoints():
-        print(f"Connecting to {endpoint}", file=sys.stderr)
-        try:
-            subtensor = bt.Subtensor(network=endpoint)
-            flows = call_with_deadline("Fetched TAO flow", 45, subtensor.get_all_ema_tao_inflow)
-            try:
-                return endpoint, flows, fetch_bulk_metagraphs(subtensor), "bulk"
-            except Exception as bulk_error:
-                print(f"Bulk metagraph fetch failed: {bulk_error}", file=sys.stderr)
-                netuids = fetch_subnet_netuids(subtensor)
-                return endpoint, flows, fetch_metagraphs_per_subnet(subtensor, netuids), "per-netuid"
-        except Exception as exc:
-            last_error = exc
-            print(f"Endpoint {endpoint} failed: {exc}", file=sys.stderr)
-
-    raise RuntimeError(f"Unable to fetch market data: {last_error}")
-
-
 def main() -> None:
-    endpoint, flows, metagraphs, metagraph_fetch_mode = fetch_chain_data()
+    rows = fetch_taostats_pools()
     items = [
-        build_market_item(meta, flows.get(int(getattr(meta, "netuid"))))
-        for meta in metagraphs
-        if int(getattr(meta, "netuid")) > 0
+        build_market_item(row)
+        for row in rows
+        if to_int(row.get("netuid")) is not None and int(row["netuid"]) > 0
     ]
     items.sort(key=lambda item: item["netuid"])
 
     flow_blocks = [item["taoFlowBlock"] for item in items if item["taoFlowBlock"] is not None]
-    burn_values = [item["burnEmissionPct"] for item in items if item["totalNeuronEmission"] > 0]
+    burn_values = [item["burnEmissionPct"] for item in items if item["burnEmissionPct"] is not None]
     positive_flow = sum(1 for item in items if item["taoFlow"] > 0)
     negative_flow = sum(1 for item in items if item["taoFlow"] < 0)
 
@@ -249,14 +232,15 @@ def main() -> None:
         "updatedAt": utc_now(),
         "network": "finney",
         "source": {
-            "method": "bittensor-sdk",
-            "endpoint": endpoint,
-            "taoFlowCall": "Subtensor.get_all_ema_tao_inflow",
-            "taoFlowTimeframe": "1 month / 30 day exponential moving average",
-            "metagraphCall": "Subtensor.get_all_metagraphs_info",
-            "metagraphFetchMode": metagraph_fetch_mode,
-            "burnEmissionPct": "owner coldkey emission share of total metagraph emission",
-            "taostatsReference": "https://docs.taostats.io/docs/tao-flow",
+            "method": "taostats-public-subnets-page",
+            "url": TAOSTATS_SUBNETS_URL,
+            "queryKey": "dtaoSubnetPools",
+            "taoFlowField": "net_flow_30_days",
+            "taoFlowTimeframe": "1 month",
+            "taoFlowTableLabel": "Flow 1M",
+            "taoFlowUnit": "TAO",
+            "conversion": "rao values divided by 1e9",
+            "burnEmissionPct": "Taostats incentive_burn displayed as a percentage",
         },
         "summary": {
             "subnets": len(items),
@@ -264,6 +248,7 @@ def main() -> None:
             "positiveFlow": positive_flow,
             "negativeFlow": negative_flow,
             "flatFlow": len(items) - positive_flow - negative_flow,
+            "netFlow": round(sum(item["taoFlow"] for item in items), 12),
             "averageBurnEmissionPct": round(sum(burn_values) / len(burn_values), 6)
             if burn_values
             else 0,
@@ -273,10 +258,14 @@ def main() -> None:
     }
     write_outputs(payload)
     print(
-        f"Wrote {len(items)} market rows at block {payload['summary']['flowBlock']} "
-        f"to market-data.js"
+        f"Wrote {len(items)} Taostats Flow 1M rows at block "
+        f"{payload['summary']['flowBlock']} to market-data.js"
     )
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+    except Exception as exc:
+        print(f"fetch-market-data failed: {exc}", file=sys.stderr)
+        raise

@@ -647,7 +647,7 @@ function renderIntelligence() {
         <span><b>${formatNumber(summary.averageVotes.toFixed(1))}</b> avg thumbs</span>
         <span><b>${formatNumber(summary.medianVotes)}</b> median thumbs</span>
         <span><b>${summary.contested}</b> contested</span>
-        <span><b>${formatPercent(marketSummary.averageBurnEmissionPct, 1)}</b> avg burn emission</span>
+        <span><b>${formatPercent(marketSummary.averageBurnEmissionPct, 1)}</b> avg incentive burn</span>
       </div>
     `;
   }
@@ -663,10 +663,10 @@ function renderIntelligence() {
         <span><b>${formatNumber(verifiedLinks)}</b> target checked</span>
         <span><b>${formatNumber(missingLinks)}</b> missing targets</span>
         <span><b>${summary.statusCounts["no-votes"]}</b> true empty</span>
-        <span><b>${formatPercent(marketCoverage, 0)}</b> metagraph match</span>
-        <span><b>${flowBlock}</b> 1M EMA block</span>
-        <span><b>${formatSignedTao(marketSummary.netFlow, 3)}</b> net 1M EMA</span>
-        <span><b>${highBurnCount}</b> high burn-emission</span>
+        <span><b>${formatPercent(marketCoverage, 0)}</b> market match</span>
+        <span><b>${flowBlock}</b> Flow 1M block</span>
+        <span><b>${formatSignedTao(marketSummary.netFlow, 3)}</b> net Flow 1M</span>
+        <span><b>${highBurnCount}</b> high incentive burn</span>
       </div>
       ${topCoVe ? `
         <button class="audit-focus ${getTone(topCoVe)}" type="button" data-key="${escapeHtml(topCoVe.key)}">
@@ -765,12 +765,12 @@ const metricDefinitions = {
     format: (value) => formatNumber(Math.round(value))
   },
   "tao-flow": {
-    label: "1M TAO flow",
+    label: "TAO Flow 1M",
     value: (item) => item.hasMarket ? item.taoFlow : null,
     format: (value) => formatSignedTao(value, 4)
   },
   "burn-emission": {
-    label: "Burn emission %",
+    label: "Incentive burn %",
     value: (item) => Number.isFinite(item.burnEmissionPct) ? item.burnEmissionPct : null,
     format: (value) => formatPercent(value, 1)
   },
@@ -964,13 +964,13 @@ function getFlowTone(item) {
 
 function renderMarketTags(item, variant = "row") {
   if (!item.hasMarket) {
-    return `<div class="market-tags market-tags-${variant}"><span class="market-tag muted">No metagraph row</span></div>`;
+    return `<div class="market-tags market-tags-${variant}"><span class="market-tag muted">No market row</span></div>`;
   }
 
   return `
     <div class="market-tags market-tags-${variant}">
-      <span class="market-tag flow-${getFlowTone(item)}">1M EMA ${formatSignedTao(item.taoFlow, 4)}</span>
-      <span class="market-tag burn">${formatBurnEmission(item)} burn emission</span>
+      <span class="market-tag flow-${getFlowTone(item)}">Flow 1M ${formatSignedTao(item.taoFlow, 4)}</span>
+      <span class="market-tag burn">${formatBurnEmission(item)} incentive burn</span>
       <span class="market-tag hype-${getHypeTone(item)}">Hype ${formatNumber(item.hypeScore)}</span>
     </div>
   `;
@@ -980,8 +980,8 @@ function renderMarketDetail(item) {
   if (!item.hasMarket) {
     return `
       <div class="detail-market">
-        <span><strong>n/a</strong><em>1M TAO flow</em></span>
-        <span><strong>n/a</strong><em>Burn emission %</em></span>
+        <span><strong>n/a</strong><em>TAO Flow 1M</em></span>
+        <span><strong>n/a</strong><em>Incentive burn %</em></span>
         <span><strong>n/a</strong><em>Burn cost</em></span>
       </div>
     `;
@@ -989,8 +989,8 @@ function renderMarketDetail(item) {
 
   return `
     <div class="detail-market">
-      <span><strong>${formatSignedTao(item.taoFlow, 4)}</strong><em>1M TAO flow</em></span>
-      <span><strong>${formatBurnEmission(item)}</strong><em>Burn emission %</em></span>
+      <span><strong>${formatSignedTao(item.taoFlow, 4)}</strong><em>TAO Flow 1M</em></span>
+      <span><strong>${formatBurnEmission(item)}</strong><em>Incentive burn %</em></span>
       <span><strong>${formatTao(item.market.burnCost, 4)}</strong><em>Burn cost</em></span>
     </div>
   `;
