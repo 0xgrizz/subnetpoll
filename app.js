@@ -1,6 +1,8 @@
 const data = window.REACTION_DATA || {};
+const marketData = window.SUBNET_MARKET_DATA || {};
 const state = {
   filter: "all",
+  marketFilter: "all",
   search: "",
   sort: "legit-ratio",
   sizeBy: "votes",
@@ -20,8 +22,12 @@ const topBunkListEl = document.querySelector("#topBunkList");
 const contestedListEl = document.querySelector("#contestedList");
 const searchInput = document.querySelector("#searchInput");
 const filterButtons = Array.from(document.querySelectorAll("[data-filter]"));
+const marketFilterButtons = Array.from(document.querySelectorAll("[data-market-filter]"));
 const sortButtons = Array.from(document.querySelectorAll("[data-sort]"));
 const sizeButtons = Array.from(document.querySelectorAll("[data-size-by]"));
+let bubblePhysicsFrame = 0;
+let bubblePhysicsGeneration = 0;
+let lastBubbleLayoutSignature = "";
 
 const thumbsUpNames = new Set(["👍", "thumbsup", "+1"]);
 const thumbsDownNames = new Set(["👎", "thumbsdown", "-1"]);
@@ -44,6 +50,34 @@ function formatPercent(value, digits = 0) {
     maximumFractionDigits: digits,
     minimumFractionDigits: digits
   }).format(value)}%`;
+}
+
+function formatDecimal(value, digits = 2) {
+  if (!Number.isFinite(value)) return "n/a";
+
+  return new Intl.NumberFormat(undefined, {
+    maximumFractionDigits: digits,
+    minimumFractionDigits: digits
+  }).format(value);
+}
+
+function formatSignedTao(value, digits = 4) {
+  if (!Number.isFinite(value)) return "n/a";
+  const sign = value > 0 ? "+" : value < 0 ? "-" : "";
+  return `${sign}${formatDecimal(Math.abs(value), digits)} TAO`;
+}
+
+function formatTao(value, digits = 4) {
+  if (!Number.isFinite(value)) return "n/a";
+  return `${formatDecimal(value, digits)} TAO`;
+}
+
+function formatCompactTao(value) {
+  if (!Number.isFinite(value)) return "n/a";
+  const absolute = Math.abs(value);
+  const digits = absolute >= 10 ? 1 : absolute >= 1 ? 2 : 3;
+  const sign = value > 0 ? "+" : value < 0 ? "-" : "";
+  return `${sign}${formatDecimal(absolute, digits)}`;
 }
 
 function formatDate(value) {
@@ -89,6 +123,35 @@ function getSectorName(subnetNumber) {
   return "Subnets 3";
 }
 
+function normalizeMarketRow(row) {
+  if (!row) return null;
+  const netuid = Number(row.netuid);
+  if (!Number.isFinite(netuid)) return null;
+  const taoFlow = Number(row.taoFlow);
+  const burnEmissionPct = Number(row.burnEmissionPct);
+
+  return {
+    ...row,
+    netuid,
+    taoFlow: Number.isFinite(taoFlow) ? taoFlow : 0,
+    burnEmissionPct: Number.isFinite(burnEmissionPct) ? burnEmissionPct : null,
+    subnetEmission: Number(row.subnetEmission),
+    burnCost: Number(row.burnCost),
+    taoIn: Number(row.taoIn),
+    alphaIn: Number(row.alphaIn),
+    alphaOut: Number(row.alphaOut),
+    movingPrice: Number(row.movingPrice),
+    subnetVolume: Number(row.subnetVolume)
+  };
+}
+
+const marketByNetuid = new Map(
+  (Array.isArray(marketData.items) ? marketData.items : [])
+    .map(normalizeMarketRow)
+    .filter(Boolean)
+    .map((row) => [row.netuid, row])
+);
+
 function normalizeItem(item, index) {
   const reactions = Array.isArray(item.reactions) ? item.reactions : [];
   const countsKnown = item.up != null ||
@@ -115,6 +178,7 @@ function normalizeItem(item, index) {
     });
   const key = item.messageId || item.messageUrl || item.channelId || `${index}`;
   const subnetNumber = getSubnetNumber(item.subnet || item.channelName);
+  const market = marketByNetuid.get(subnetNumber) || null;
 
   return {
     index,
@@ -131,7 +195,11 @@ function normalizeItem(item, index) {
     support,
     status,
     countsKnown,
-    extraReactions
+    extraReactions,
+    market,
+    hasMarket: Boolean(market),
+    taoFlow: market?.taoFlow ?? 0,
+    burnEmissionPct: market?.burnEmissionPct ?? null
   };
 }
 
@@ -200,6 +268,36 @@ function formatSignal(item) {
   return `${signal}%`;
 }
 
+function formatBurnEmission(item, digits = 1) {
+  if (!Number.isFinite(item.burnEmissionPct)) return "n/a";
+  return formatPercent(item.burnEmissionPct, digits);
+}
+
+function getBurnEmissionValue(item) {
+  return Number.isFinite(item.burnEmissionPct) ? item.burnEmissionPct : -Infinity;
+}
+
+function getMarketSummary() {
+  const marketItems = items.filter((item) => item.hasMarket);
+  const burnValues = marketItems
+    .map((item) => item.burnEmissionPct)
+    .filter(Number.isFinite);
+  const netFlow = marketItems.reduce((sum, item) => sum + item.taoFlow, 0);
+  const positiveFlow = marketItems.filter((item) => item.taoFlow > 0).length;
+  const negativeFlow = marketItems.filter((item) => item.taoFlow < 0).length;
+
+  return {
+    marketItems,
+    netFlow,
+    positiveFlow,
+    negativeFlow,
+    burnValues,
+    averageBurnEmissionPct: burnValues.length
+      ? burnValues.reduce((sum, value) => sum + value, 0) / burnValues.length
+      : 0
+  };
+}
+
 function getTone(item) {
   if (item.status === "legit") return "legit";
   if (item.status === "bunk") return "bunk";
@@ -230,6 +328,7 @@ function getTickerName(item) {
 
 function getSizeMetric(item) {
   if (state.sizeBy === "signal") return Math.abs(item.net);
+  if (state.sizeBy === "tao-flow") return Math.abs(item.taoFlow);
   return item.total;
 }
 
@@ -240,7 +339,7 @@ function getBubbleSize(item, maxMetric, width) {
   const max = compact ? 78 : 118;
   const metric = getSizeMetric(item);
 
-  if (!item.countsKnown || metric === 0) return emptySize;
+  if ((state.sizeBy !== "tao-flow" && !item.countsKnown) || metric === 0) return emptySize;
 
   const scaled = Math.pow(metric / Math.max(maxMetric, 1), 0.48);
   return Math.round(min + scaled * (max - min));
@@ -375,6 +474,17 @@ function getMedian(values) {
   return sorted.length % 2 === 0 ? (sorted[middle - 1] + sorted[middle]) / 2 : sorted[middle];
 }
 
+function getQuantile(values, quantile) {
+  if (!values.length) return 0;
+  const sorted = [...values].sort((a, b) => a - b);
+  const index = (sorted.length - 1) * quantile;
+  const lower = Math.floor(index);
+  const upper = Math.ceil(index);
+  const weight = index - lower;
+
+  return sorted[lower] * (1 - weight) + sorted[upper] * weight;
+}
+
 function getGlobalSummary() {
   const totalUp = items.reduce((sum, item) => sum + item.up, 0);
   const totalDown = items.reduce((sum, item) => sum + item.down, 0);
@@ -450,8 +560,15 @@ function renderMiniList(target, list, mode) {
 
 function renderIntelligence() {
   const summary = getGlobalSummary();
+  const marketSummary = getMarketSummary();
   const coverage = items.length ? summary.votedItems.length / items.length * 100 : 0;
   const statusTotal = Math.max(items.length, 1);
+  const marketCoverage = items.length ? marketSummary.marketItems.length / items.length * 100 : 0;
+  const burnHighThreshold = getQuantile(marketSummary.burnValues, 0.75);
+  const highBurnCount = marketSummary.marketItems
+    .filter((item) => Number.isFinite(item.burnEmissionPct) && item.burnEmissionPct >= burnHighThreshold)
+    .length;
+  const flowBlock = marketData.summary?.flowBlock || marketSummary.marketItems[0]?.market?.taoFlowBlock || "n/a";
   const topLegit = [...items]
     .filter((item) => item.total > 0)
     .sort((a, b) => getLegitScore(b) - getLegitScore(a) || getLegitRatio(b) - getLegitRatio(a) || b.total - a.total)
@@ -511,6 +628,7 @@ function renderIntelligence() {
         <span><b>${formatNumber(summary.averageVotes.toFixed(1))}</b> avg thumbs</span>
         <span><b>${formatNumber(summary.medianVotes)}</b> median thumbs</span>
         <span><b>${summary.contested}</b> contested</span>
+        <span><b>${formatPercent(marketSummary.averageBurnEmissionPct, 1)}</b> avg burn share</span>
       </div>
     `;
   }
@@ -524,8 +642,10 @@ function renderIntelligence() {
       <div class="audit-grid">
         <span><b>${formatNumber(items.length)}</b> exact message links</span>
         <span><b>${formatNumber(summary.votedItems.length)}</b> with thumbs</span>
-        <span><b>${summary.statusCounts["no-votes"]}</b> target empty</span>
-        <span><b>${topCoVe ? getCoVeScore(topCoVe) : 0}</b> top CoVe score</span>
+        <span><b>${formatPercent(marketCoverage, 0)}</b> metagraph match</span>
+        <span><b>${flowBlock}</b> TAO flow block</span>
+        <span><b>${formatSignedTao(marketSummary.netFlow, 3)}</b> net flow</span>
+        <span><b>${highBurnCount}</b> high burn-share</span>
       </div>
       ${topCoVe ? `
         <button class="audit-focus ${getTone(topCoVe)}" type="button" data-key="${escapeHtml(topCoVe.key)}">
@@ -550,11 +670,26 @@ function applySort(list) {
     if (state.sort === "bunk-ratio") return getBunkScore(b) - getBunkScore(a) || getBunkRatio(b) - getBunkRatio(a) || b.total - a.total;
     if (state.sort === "votes") return b.total - a.total || Math.abs(b.net) - Math.abs(a.net);
     if (state.sort === "conviction") return getCoVeScore(b) - getCoVeScore(a) || b.total - a.total;
+    if (state.sort === "tao-flow") return b.taoFlow - a.taoFlow || b.total - a.total;
+    if (state.sort === "burn-emission") return getBurnEmissionValue(b) - getBurnEmissionValue(a) || b.total - a.total;
     if (state.sort === "name") return a.subnet.localeCompare(b.subnet, undefined, { numeric: true });
     return getLegitScore(b) - getLegitScore(a) || b.total - a.total;
   });
 
   return sorted;
+}
+
+function matchesMarketFilter(item) {
+  if (state.marketFilter === "all") return true;
+  if (state.marketFilter === "flow-positive") return item.hasMarket && item.taoFlow > 0;
+  if (state.marketFilter === "flow-negative") return item.hasMarket && item.taoFlow < 0;
+  if (state.marketFilter === "burn-high") {
+    const burnValues = items.map((current) => current.burnEmissionPct).filter(Number.isFinite);
+    return item.hasMarket &&
+      Number.isFinite(item.burnEmissionPct) &&
+      item.burnEmissionPct >= getQuantile(burnValues, 0.75);
+  }
+  return item.hasMarket;
 }
 
 function getVisibleItems() {
@@ -565,7 +700,7 @@ function getVisibleItems() {
       item.subnet.toLowerCase().includes(query) ||
       item.channelName.toLowerCase().includes(query);
     const matchesFilter = state.filter === "all" || item.status === state.filter;
-    return matchesSearch && matchesFilter;
+    return matchesSearch && matchesFilter && matchesMarketFilter(item);
   });
 
   return applySort(filtered);
@@ -607,6 +742,44 @@ function renderVoteBalance(item, variant = "row") {
   `;
 }
 
+function getFlowTone(item) {
+  if (!item.hasMarket || item.taoFlow === 0) return "flat";
+  return item.taoFlow > 0 ? "positive" : "negative";
+}
+
+function renderMarketTags(item, variant = "row") {
+  if (!item.hasMarket) {
+    return `<div class="market-tags market-tags-${variant}"><span class="market-tag muted">No metagraph row</span></div>`;
+  }
+
+  return `
+    <div class="market-tags market-tags-${variant}">
+      <span class="market-tag flow-${getFlowTone(item)}">${formatSignedTao(item.taoFlow, 4)}</span>
+      <span class="market-tag burn">${formatBurnEmission(item)} burn share</span>
+    </div>
+  `;
+}
+
+function renderMarketDetail(item) {
+  if (!item.hasMarket) {
+    return `
+      <div class="detail-market">
+        <span><strong>n/a</strong><em>TAO flow</em></span>
+        <span><strong>n/a</strong><em>Burn share</em></span>
+        <span><strong>n/a</strong><em>Emission</em></span>
+      </div>
+    `;
+  }
+
+  return `
+    <div class="detail-market">
+      <span><strong>${formatSignedTao(item.taoFlow, 4)}</strong><em>TAO flow</em></span>
+      <span><strong>${formatBurnEmission(item)}</strong><em>Burn share</em></span>
+      <span><strong>${formatTao(item.market.burnCost, 4)}</strong><em>Burn cost</em></span>
+    </div>
+  `;
+}
+
 function renderMapDetail(item) {
   if (!item) {
     mapDetailEl.innerHTML = `<p class="empty-detail">No subnets match.</p>`;
@@ -636,6 +809,7 @@ function renderMapDetail(item) {
     </div>
 
     ${renderVoteBalance(item, "detail")}
+    ${renderMarketDetail(item)}
 
     <div class="detail-stats">
       <span><strong>${formatNumber(item.up)}</strong> legit</span>
@@ -659,10 +833,202 @@ function getBubbleGlow(item) {
   return "rgba(255, 64, 84, 0.72)";
 }
 
+function prefersReducedMotion() {
+  return window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
+function clamp(value, min, max) {
+  return Math.min(Math.max(value, min), max);
+}
+
+function setBubblePosition(element, x, y, opacity = 1) {
+  element.style.left = `${x}px`;
+  element.style.top = `${y}px`;
+  element.style.setProperty("--bubble-opacity", opacity.toFixed(3));
+}
+
+function settleBubblePlacements(placements) {
+  placements.forEach((placement) => {
+    const element = bubbleMapEl.querySelector(`[data-key="${CSS.escape(placement.item.key)}"]`);
+    if (!element) return;
+    setBubblePosition(element, placement.x, placement.y, 1);
+    element.classList.remove("is-falling");
+    element.classList.add("is-settled");
+  });
+}
+
+function animateBubblePhysics(placements, width, height, shouldAnimate) {
+  cancelAnimationFrame(bubblePhysicsFrame);
+  bubblePhysicsGeneration += 1;
+  const generation = bubblePhysicsGeneration;
+
+  if (!shouldAnimate || prefersReducedMotion()) {
+    bubbleMapEl.classList.remove("is-physics-active");
+    settleBubblePlacements(placements);
+    return;
+  }
+
+  bubbleMapEl.classList.add("is-physics-active");
+  const compact = width < 700;
+  const padding = compact ? 8 : 14;
+  const gap = compact ? 2 : 5;
+  const bodies = placements.map((placement, index) => {
+    const element = bubbleMapEl.querySelector(`[data-key="${CSS.escape(placement.item.key)}"]`);
+    const radius = placement.radius;
+    const startX = clamp(
+      placement.x + (hashUnit(placement.item.key, 31) - 0.5) * Math.min(width * 0.28, 220),
+      radius + padding,
+      width - radius - padding
+    );
+
+    if (element) {
+      element.classList.add("is-falling");
+      element.classList.remove("is-settled");
+      setBubblePosition(element, startX, -radius - 46 - hashUnit(placement.item.key, 33) * 180, 0);
+    }
+
+    return {
+      element,
+      x: startX,
+      y: -radius - 46 - hashUnit(placement.item.key, 33) * 180 - index * 1.2,
+      vx: (hashUnit(placement.item.key, 35) - 0.5) * 3.6,
+      vy: 0,
+      targetX: placement.x,
+      targetY: placement.y,
+      radius,
+      mass: Math.max(0.72, Math.pow(radius / 34, 1.38)),
+      delay: Math.min(index * 6, 520),
+      active: false
+    };
+  });
+
+  const startedAt = performance.now();
+  let previous = startedAt;
+
+  function finish() {
+    if (generation !== bubblePhysicsGeneration) return;
+    bubbleMapEl.classList.remove("is-physics-active");
+    settleBubblePlacements(placements);
+  }
+
+  function step(now) {
+    if (generation !== bubblePhysicsGeneration) return;
+
+    const elapsed = now - startedAt;
+    const delta = Math.min((now - previous) / 16.67, 2.2);
+    previous = now;
+    let distanceTotal = 0;
+    let velocityTotal = 0;
+    let activeCount = 0;
+
+    bodies.forEach((body) => {
+      const localElapsed = elapsed - body.delay;
+      if (localElapsed <= 0) return;
+
+      body.active = true;
+      activeCount += 1;
+      const pull = 0.022 / body.mass;
+      const gravity = 0.34 + body.radius / 230;
+      const nearTarget = Math.hypot(body.targetX - body.x, body.targetY - body.y) < body.radius * 0.45;
+      const damping = Math.pow(nearTarget ? 0.74 : 0.87, delta);
+
+      body.vx += (body.targetX - body.x) * pull * delta;
+      body.vy += (gravity + (body.targetY - body.y) * pull * 0.72) * delta;
+      body.vx *= damping;
+      body.vy *= damping;
+      body.x += body.vx * delta;
+      body.y += body.vy * delta;
+
+      if (body.x < body.radius + padding) {
+        body.x = body.radius + padding;
+        body.vx = Math.abs(body.vx) * 0.44;
+      } else if (body.x > width - body.radius - padding) {
+        body.x = width - body.radius - padding;
+        body.vx = -Math.abs(body.vx) * 0.44;
+      }
+
+      if (body.y > height - body.radius - padding) {
+        body.y = height - body.radius - padding;
+        body.vy = -Math.abs(body.vy) * 0.38;
+        body.vx *= 0.92;
+      }
+    });
+
+    for (let index = 0; index < bodies.length; index += 1) {
+      const a = bodies[index];
+      if (!a.active) continue;
+
+      for (let nextIndex = index + 1; nextIndex < bodies.length; nextIndex += 1) {
+        const b = bodies[nextIndex];
+        if (!b.active) continue;
+
+        let dx = b.x - a.x;
+        let dy = b.y - a.y;
+        let distance = Math.hypot(dx, dy);
+        if (distance === 0) {
+          dx = hashUnit(`${a.targetX}:${b.targetX}`, 41) - 0.5;
+          dy = hashUnit(`${a.targetY}:${b.targetY}`, 43) - 0.5;
+          distance = Math.hypot(dx, dy) || 1;
+        }
+
+        const minDistance = a.radius + b.radius + gap;
+        if (distance >= minDistance) continue;
+
+        const nx = dx / distance;
+        const ny = dy / distance;
+        const overlap = minDistance - distance;
+        const inverseA = 1 / a.mass;
+        const inverseB = 1 / b.mass;
+        const inverseTotal = inverseA + inverseB;
+        const push = overlap / inverseTotal;
+
+        a.x -= nx * push * inverseA;
+        a.y -= ny * push * inverseA;
+        b.x += nx * push * inverseB;
+        b.y += ny * push * inverseB;
+
+        const relativeVelocity = (b.vx - a.vx) * nx + (b.vy - a.vy) * ny;
+        if (relativeVelocity < 0) {
+          const impulse = -relativeVelocity * 0.24;
+          a.vx -= nx * impulse * inverseA;
+          a.vy -= ny * impulse * inverseA;
+          b.vx += nx * impulse * inverseB;
+          b.vy += ny * impulse * inverseB;
+        }
+      }
+    }
+
+    bodies.forEach((body) => {
+      if (!body.active || !body.element) return;
+      body.x = clamp(body.x, body.radius + padding, width - body.radius - padding);
+      body.y = clamp(body.y, -body.radius * 2, height - body.radius - padding);
+      const opacity = Math.min(1, Math.max(0, (elapsed - body.delay) / 210));
+      setBubblePosition(body.element, body.x, body.y, opacity);
+      distanceTotal += Math.hypot(body.targetX - body.x, body.targetY - body.y);
+      velocityTotal += Math.hypot(body.vx, body.vy);
+    });
+
+    const averageDistance = activeCount ? distanceTotal / activeCount : Infinity;
+    const averageVelocity = activeCount ? velocityTotal / activeCount : Infinity;
+    const settled = elapsed > 1080 && averageDistance < 1.4 && averageVelocity < 0.18;
+
+    if (settled || elapsed > 2450) {
+      finish();
+      return;
+    }
+
+    bubblePhysicsFrame = requestAnimationFrame(step);
+  }
+
+  bubblePhysicsFrame = requestAnimationFrame(step);
+}
+
 function renderBubbleMap(visibleItems) {
   if (!bubbleMapEl) return;
 
   if (visibleItems.length === 0) {
+    cancelAnimationFrame(bubblePhysicsFrame);
+    lastBubbleLayoutSignature = "";
     bubbleMapEl.innerHTML = "";
     bubbleMapEl.style.height = "";
     return;
@@ -683,6 +1049,18 @@ function renderBubbleMap(visibleItems) {
   const density = compact ? 0.28 : 0.58;
   const height = Math.round(Math.min(maxHeight, Math.max(baseHeight, bubbleArea / (width * density))));
   const placements = placeBubbles(bubbleItems, width, height);
+  const layoutSignature = [
+    width,
+    height,
+    state.filter,
+    state.marketFilter,
+    state.search.trim(),
+    state.sort,
+    state.sizeBy,
+    visibleItems.map((item) => `${item.key}:${getSizeMetric(item)}`).join("|")
+  ].join("::");
+  const shouldAnimate = layoutSignature !== lastBubbleLayoutSignature;
+  lastBubbleLayoutSignature = layoutSignature;
 
   bubbleMapEl.style.height = `${height}px`;
   bubbleMapEl.innerHTML = placements.map(({ item, size, x, y }, index) => {
@@ -693,9 +1071,10 @@ function renderBubbleMap(visibleItems) {
     const codeSize = Math.max(17, Math.min(34, size / 3.3));
     const volumeSize = Math.max(8, Math.min(12, size / 10));
     const support = getBubbleBackgroundSupport(item);
-    const volumeLabel = item.total > 0 ? `${formatNumber(item.total)}t` : "empty";
+    const volumeLabel = state.sizeBy === "tao-flow"
+      ? formatCompactTao(item.taoFlow)
+      : item.total > 0 ? `${formatNumber(item.total)}t` : "empty";
     const zIndex = item.key === state.selectedKey ? 20 : Math.max(1, 14 - Math.round(index / 10));
-    const delay = Math.min(index * 11, 720);
 
     const sizeClass = size < 54 ? " is-tiny" : size < 72 ? " is-small" : "";
 
@@ -706,7 +1085,7 @@ function renderBubbleMap(visibleItems) {
         data-key="${escapeHtml(item.key)}"
         title="${escapeHtml(label)}"
         aria-label="${escapeHtml(label)}"
-        style="--size: ${size}px; --x: ${x}px; --y: ${y}px; --support: ${support}%; --glow-color: ${getBubbleGlow(item)}; --name-size: ${nameSize}px; --change-size: ${changeSize}px; --code-size: ${codeSize}px; --volume-size: ${volumeSize}px; --delay: ${delay}ms; z-index: ${zIndex};"
+        style="--size: ${size}px; --support: ${support}%; --glow-color: ${getBubbleGlow(item)}; --name-size: ${nameSize}px; --change-size: ${changeSize}px; --code-size: ${codeSize}px; --volume-size: ${volumeSize}px; left: ${x}px; top: ${y}px; z-index: ${zIndex};"
       >
         <span class="bubble-code">${escapeHtml(getBubbleLabel(item))}</span>
         <span class="bubble-name">${escapeHtml(getTickerName(item))}</span>
@@ -715,6 +1094,7 @@ function renderBubbleMap(visibleItems) {
       </button>
     `;
   }).join("");
+  animateBubblePhysics(placements, width, height, shouldAnimate);
 }
 
 function renderRows(visibleItems) {
@@ -743,6 +1123,7 @@ function renderRows(visibleItems) {
 
       <div class="split">
         ${renderVoteBalance(item, "row")}
+        ${renderMarketTags(item, "row")}
         ${item.extraReactions.length ? `
           <div class="extra-reactions">
             ${item.extraReactions.map((reaction) => `
@@ -778,9 +1159,17 @@ function renderSource() {
   const source = data.sourceMessage || {};
   const sourceLink = document.querySelector("#sourceLink");
   const dataBadge = document.querySelector("#dataBadge");
+  const marketUpdatedAt = marketData.updatedAt ? new Date(marketData.updatedAt) : null;
+  const hasMarketDate = marketUpdatedAt && !Number.isNaN(marketUpdatedAt.getTime());
+  const updatedAtText = hasMarketDate
+    ? `${formatDate(data.updatedAt)} · Market ${new Intl.DateTimeFormat(undefined, {
+      dateStyle: "medium",
+      timeStyle: "short"
+    }).format(marketUpdatedAt)}`
+    : formatDate(data.updatedAt);
 
   document.querySelector("#messageText").textContent = source.content || "Reaction overview";
-  document.querySelector("#updatedAt").textContent = formatDate(data.updatedAt);
+  document.querySelector("#updatedAt").textContent = updatedAtText;
 
   sourceLink.href = source.url || "#";
   sourceLink.hidden = !source.url;
@@ -799,6 +1188,20 @@ filterButtons.forEach((button) => {
     state.filter = button.dataset.filter;
 
     filterButtons.forEach((current) => {
+      const isActive = current === button;
+      current.classList.toggle("is-active", isActive);
+      current.setAttribute("aria-pressed", String(isActive));
+    });
+
+    renderViews();
+  });
+});
+
+marketFilterButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    state.marketFilter = button.dataset.marketFilter;
+
+    marketFilterButtons.forEach((current) => {
       const isActive = current === button;
       current.classList.toggle("is-active", isActive);
       current.setAttribute("aria-pressed", String(isActive));

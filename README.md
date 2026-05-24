@@ -5,6 +5,7 @@ Public static dashboard for the Discord prompt:
 > Miners, thumbs up 👍 if this subnet is legit and 👎 if this subnet is bunk.
 
 Open `index.html` in a browser to see the dashboard. It reads `data.js`, so it also works from `file://` without a build step.
+The page also reads `market-data.js` for current Finney metagraph metrics: TAO flow and owner/burn-coldkey emission share.
 
 ## Public Release
 
@@ -37,6 +38,20 @@ npm run check
 ```
 
 That validates the frontend scripts and scans the repo for Discord-token-like secrets.
+
+Refresh market data with:
+
+```sh
+npm run refresh:market
+```
+
+That pulls TAO flow with `Subtensor.get_all_ema_tao_inflow()` and metagraph rows with `Subtensor.get_all_metagraphs_info()`. If the bulk metagraph RPC times out, the script falls back to `Subtensor.get_metagraph_info(netuid)` for every subnet and writes:
+
+- `market-data.js`
+- `exports/subnet-market-data-latest.json`
+- `exports/subnet-market-data-latest.csv`
+
+`burnEmissionPct` is computed as the subnet owner coldkey's share of total metagraph emission for that subnet.
 
 ## Secret Safety
 
