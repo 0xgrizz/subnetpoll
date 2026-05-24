@@ -19,10 +19,10 @@
     <meta name="twitter:image" content="https://thumbsflow.io/og-card.svg">
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
     <link rel="manifest" href="site.webmanifest">
-    <link rel="stylesheet" href="styles.css?v=22">
-    <script src="data.js?v=22" defer></script>
-    <script src="market-data.js?v=22" defer></script>
-    <script src="app.js?v=22" defer></script>
+    <link rel="stylesheet" href="styles.css?v=23">
+    <script src="data.js?v=23" defer></script>
+    <script src="market-data.js?v=23" defer></script>
+    <script src="app.js?v=23" defer></script>
   </head>
   <body>
     <a class="skip-link" href="#bubbleMap">Skip to bubble map</a>
@@ -84,9 +84,10 @@
           <div class="control-group">
             <span>Order</span>
             <div class="sort-buttons" role="group" aria-label="Order subnets">
-              <button class="sort-chip is-active" type="button" data-sort="legit-ratio" aria-pressed="true">Legit %</button>
+              <button class="sort-chip is-active" type="button" data-sort="thumbs-direction" aria-pressed="true" aria-label="Order by highest thumbs up first, then highest thumbs down">👍 → 👎</button>
+              <button class="sort-chip" type="button" data-sort="legit-ratio" aria-pressed="false">Legit %</button>
               <button class="sort-chip" type="button" data-sort="bunk-ratio" aria-pressed="false">Bunk %</button>
-              <button class="sort-chip" type="button" data-sort="votes" aria-pressed="false">Thumbs</button>
+              <button class="sort-chip" type="button" data-sort="votes" aria-pressed="false">Total</button>
               <button class="sort-chip" type="button" data-sort="conviction" aria-pressed="false">Conviction</button>
               <button class="sort-chip" type="button" data-sort="tao-flow" aria-pressed="false">TAO Flow</button>
               <button class="sort-chip" type="button" data-sort="burn-emission" aria-pressed="false">Burn %</button>
@@ -138,15 +139,15 @@
       <section class="signal-board" aria-label="Signal breakdown">
         <article class="signal-panel">
           <div class="panel-head">
-            <span>Best ratio</span>
-            <strong>Legit</strong>
+            <span>Top 3 thumbs</span>
+            <strong>Up</strong>
           </div>
           <div class="mini-list" id="topLegitList"></div>
         </article>
         <article class="signal-panel">
           <div class="panel-head">
-            <span>Worst ratio</span>
-            <strong>Bunk</strong>
+            <span>Top 3 thumbs</span>
+            <strong>Down</strong>
           </div>
           <div class="mini-list" id="topBunkList"></div>
         </article>
@@ -192,7 +193,7 @@
         <div class="ranking-head">
           <span>Subnet</span>
           <span>Reaction split</span>
-          <span>Score</span>
+          <span>Thumbs</span>
         </div>
         <div class="rows" id="rows" aria-live="polite"></div>
         <p class="empty-state" id="emptyState" hidden>No subnets match the current view.</p>

@@ -517,6 +517,16 @@ h2 {
   color: var(--blue);
 }
 
+.mini-row.leader-up span {
+  background: rgba(66, 243, 111, 0.2);
+  color: var(--green);
+}
+
+.mini-row.leader-down span {
+  background: rgba(255, 70, 91, 0.2);
+  color: var(--red);
+}
+
 .signal-board {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -1419,9 +1429,50 @@ input:focus,
   transition: background var(--fast), box-shadow var(--fast);
 }
 
+.row.is-top-up {
+  background:
+    linear-gradient(90deg, rgba(66, 243, 111, 0.12), transparent 28%),
+    #0b1019;
+}
+
+.row.is-top-down {
+  background:
+    linear-gradient(90deg, rgba(255, 70, 91, 0.12), transparent 28%),
+    #0b1019;
+}
+
+.row.is-top-up.is-top-down {
+  background:
+    linear-gradient(90deg, rgba(66, 243, 111, 0.12), transparent 28%),
+    linear-gradient(270deg, rgba(255, 70, 91, 0.12), transparent 30%),
+    #0b1019;
+}
+
 .row:hover,
 .row.is-selected {
   background: #111927;
+}
+
+.row.is-top-up:hover,
+.row.is-top-up.is-selected {
+  background:
+    linear-gradient(90deg, rgba(66, 243, 111, 0.16), transparent 30%),
+    #111927;
+}
+
+.row.is-top-down:hover,
+.row.is-top-down.is-selected {
+  background:
+    linear-gradient(90deg, rgba(255, 70, 91, 0.16), transparent 30%),
+    #111927;
+}
+
+.row.is-top-up.is-top-down:hover,
+.row.is-top-up.is-top-down.is-selected {
+  background:
+    linear-gradient(90deg, rgba(66, 243, 111, 0.16), transparent 30%),
+    linear-gradient(270deg, rgba(255, 70, 91, 0.16), transparent 30%),
+    #111927;
 }
 
 .row.is-selected {
@@ -1452,22 +1503,50 @@ input:focus,
   min-width: 0;
 }
 
-.name-text strong,
-.name-text span {
+.name-text > strong,
+.name-text > span {
   display: block;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
 
-.name-text strong {
+.name-text > strong {
   font-size: 0.98rem;
 }
 
-.name-text span {
+.name-text > span {
   margin-top: 3px;
   color: var(--muted);
   font-size: 0.8rem;
+}
+
+.leader-badges {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  margin-top: 7px;
+}
+
+.leader-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 20px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.leader-badge-up {
+  color: var(--green);
+  background: rgba(66, 243, 111, 0.15);
+}
+
+.leader-badge-down {
+  color: var(--red);
+  background: rgba(255, 70, 91, 0.16);
 }
 
 .status {

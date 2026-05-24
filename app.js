@@ -2,12 +2,13 @@ const data = window.REACTION_DATA || {};
 const marketData = window.SUBNET_MARKET_DATA || {};
 const UI_LOCALE = "en-US";
 const MAX_DECIMAL_DIGITS = 2;
+const LEADER_LIMIT = 3;
 const state = {
   filter: "all",
   signalFilter: "all",
   marketFilter: "all",
   search: "",
-  sort: "legit-ratio",
+  sort: "thumbs-direction",
   sizeBy: "votes",
   axisX: "support",
   axisY: "tao-flow",
@@ -222,6 +223,20 @@ const voteScale = {
   up: Math.max(1, ...items.map((item) => item.up)),
   down: Math.max(1, ...items.map((item) => item.down))
 };
+const topUpLeaderRanks = new Map(
+  [...items]
+    .filter((item) => item.up > 0)
+    .sort(compareByUpCount)
+    .slice(0, LEADER_LIMIT)
+    .map((item, index) => [item.key, index + 1])
+);
+const topDownLeaderRanks = new Map(
+  [...items]
+    .filter((item) => item.down > 0)
+    .sort(compareByDownCount)
+    .slice(0, LEADER_LIMIT)
+    .map((item, index) => [item.key, index + 1])
+);
 
 function getDownShare(item) {
   return item.total > 0 ? getBunkRatio(item) * 100 : 0;
@@ -563,17 +578,24 @@ function renderMiniList(target, list, mode) {
   if (!target) return;
 
   target.innerHTML = list.map((item) => {
-    const value = mode === "bunk"
-      ? `${formatRatio(getBunkRatio(item))} bunk`
+    const value = mode === "down"
+      ? `👎 ${formatNumber(item.down)}`
+      : mode === "up"
+        ? `👍 ${formatNumber(item.up)}`
+        : mode === "contested"
+          ? `${formatRatio(getLegitRatio(item))} / ${formatNumber(item.total)}`
+          : `${formatRatio(getLegitRatio(item))} legit`;
+    const secondary = mode === "down"
+      ? `${formatNumber(item.up)} up · ${formatRatio(getBunkRatio(item))} bunk`
+      : mode === "up"
+        ? `${formatNumber(item.down)} down · ${formatRatio(getLegitRatio(item))} legit`
       : mode === "contested"
-        ? `${formatRatio(getLegitRatio(item))} / ${formatNumber(item.total)}`
-        : `${formatRatio(getLegitRatio(item))} legit`;
-    const secondary = mode === "contested"
-      ? `${formatNumber(item.up)} up · ${formatNumber(item.down)} down`
-      : `${formatNumber(item.total)} thumbs · score ${formatRatio(mode === "bunk" ? getBunkScore(item) : getLegitScore(item))}`;
+        ? `${formatNumber(item.up)} up · ${formatNumber(item.down)} down`
+        : `${formatNumber(item.total)} thumbs · score ${formatRatio(getLegitScore(item))}`;
+    const leaderClass = mode === "up" ? " leader-up" : mode === "down" ? " leader-down" : "";
 
     return `
-      <button class="mini-row ${getTone(item)}" type="button" data-key="${escapeHtml(item.key)}">
+      <button class="mini-row ${getTone(item)}${leaderClass}" type="button" data-key="${escapeHtml(item.key)}">
         <span>${escapeHtml(getBubbleLabel(item))}</span>
         <strong>${escapeHtml(getTickerName(item))}</strong>
         <em>${escapeHtml(value)}</em>
@@ -596,14 +618,14 @@ function renderIntelligence() {
     .filter((item) => Number.isFinite(item.burnEmissionPct) && item.burnEmissionPct >= burnHighThreshold)
     .length;
   const flowBlock = marketData.summary?.flowBlock || marketSummary.marketItems[0]?.market?.taoFlowBlock || "n/a";
-  const topLegit = [...items]
-    .filter((item) => item.total > 0)
-    .sort((a, b) => getLegitScore(b) - getLegitScore(a) || getLegitRatio(b) - getLegitRatio(a) || b.total - a.total)
-    .slice(0, 5);
-  const topBunk = [...items]
-    .filter((item) => item.total > 0)
-    .sort((a, b) => getBunkScore(b) - getBunkScore(a) || getBunkRatio(b) - getBunkRatio(a) || b.total - a.total)
-    .slice(0, 5);
+  const topUp = [...items]
+    .filter((item) => item.up > 0)
+    .sort(compareByUpCount)
+    .slice(0, LEADER_LIMIT);
+  const topDown = [...items]
+    .filter((item) => item.down > 0)
+    .sort(compareByDownCount)
+    .slice(0, LEADER_LIMIT);
   const contested = [...items]
     .filter((item) => item.total >= 10)
     .sort((a, b) => Math.abs(getLegitRatio(a) - 0.5) - Math.abs(getLegitRatio(b) - 0.5) || b.total - a.total)
@@ -686,15 +708,43 @@ function renderIntelligence() {
     `;
   }
 
-  renderMiniList(topLegitListEl, topLegit, "legit");
-  renderMiniList(topBunkListEl, topBunk, "bunk");
+  renderMiniList(topLegitListEl, topUp, "up");
+  renderMiniList(topBunkListEl, topDown, "down");
   renderMiniList(contestedListEl, contested, "contested");
+}
+
+function compareByUpCount(a, b) {
+  return b.up - a.up ||
+    b.total - a.total ||
+    a.down - b.down ||
+    a.subnet.localeCompare(b.subnet, UI_LOCALE, { numeric: true });
+}
+
+function compareByDownCount(a, b) {
+  return b.down - a.down ||
+    b.total - a.total ||
+    a.up - b.up ||
+    a.subnet.localeCompare(b.subnet, UI_LOCALE, { numeric: true });
+}
+
+function getThumbDirectionGroup(item) {
+  if (item.total === 0) return 2;
+  return item.up >= item.down ? 0 : 1;
+}
+
+function compareByThumbDirection(a, b) {
+  const groupDelta = getThumbDirectionGroup(a) - getThumbDirectionGroup(b);
+  if (groupDelta !== 0) return groupDelta;
+  if (getThumbDirectionGroup(a) === 0) return compareByUpCount(a, b);
+  if (getThumbDirectionGroup(a) === 1) return compareByDownCount(a, b);
+  return a.subnet.localeCompare(b.subnet, UI_LOCALE, { numeric: true });
 }
 
 function applySort(list) {
   const sorted = [...list];
 
   sorted.sort((a, b) => {
+    if (state.sort === "thumbs-direction") return compareByThumbDirection(a, b);
     if (state.sort === "legit-ratio") return getLegitScore(b) - getLegitScore(a) || getLegitRatio(b) - getLegitRatio(a) || b.total - a.total;
     if (state.sort === "bunk-ratio") return getBunkScore(b) - getBunkScore(a) || getBunkRatio(b) - getBunkRatio(a) || b.total - a.total;
     if (state.sort === "votes") return b.total - a.total || Math.abs(b.net) - Math.abs(a.net);
@@ -702,8 +752,8 @@ function applySort(list) {
     if (state.sort === "tao-flow") return b.taoFlow - a.taoFlow || b.total - a.total;
     if (state.sort === "burn-emission") return getBurnEmissionValue(b) - getBurnEmissionValue(a) || b.total - a.total;
     if (state.sort === "hype") return b.hypeScore - a.hypeScore || b.total - a.total;
-    if (state.sort === "name") return a.subnet.localeCompare(b.subnet, undefined, { numeric: true });
-    return getLegitScore(b) - getLegitScore(a) || b.total - a.total;
+    if (state.sort === "name") return a.subnet.localeCompare(b.subnet, UI_LOCALE, { numeric: true });
+    return compareByThumbDirection(a, b);
   });
 
   return sorted;
@@ -1042,6 +1092,19 @@ function renderMapDetail(item) {
   `;
 }
 
+function renderLeaderBadges(item) {
+  const upRank = topUpLeaderRanks.get(item.key);
+  const downRank = topDownLeaderRanks.get(item.key);
+  if (!upRank && !downRank) return "";
+
+  return `
+    <div class="leader-badges" aria-label="Top thumb count">
+      ${upRank ? `<span class="leader-badge leader-badge-up">#${upRank} up</span>` : ""}
+      ${downRank ? `<span class="leader-badge leader-badge-down">#${downRank} down</span>` : ""}
+    </div>
+  `;
+}
+
 function getBubbleBackgroundSupport(item) {
   if (!item.countsKnown || item.total === 0) return 50;
   return getLegitRatio(item) * 100;
@@ -1332,14 +1395,18 @@ function renderRows(visibleItems) {
     const confidenceLabel = item.total > 0
       ? `score ${formatRatio(getDominantScore(item))}`
       : "no thumbs";
+    const upLeaderRank = topUpLeaderRanks.get(item.key);
+    const downLeaderRank = topDownLeaderRanks.get(item.key);
+    const leaderClass = `${upLeaderRank ? " is-top-up" : ""}${downLeaderRank ? " is-top-down" : ""}`;
 
     return `
-    <article class="row ${getTone(item)} ${item.key === state.selectedKey ? "is-selected" : ""}" data-key="${escapeHtml(item.key)}">
+    <article class="row ${getTone(item)}${leaderClass} ${item.key === state.selectedKey ? "is-selected" : ""}" data-key="${escapeHtml(item.key)}">
       <div class="subnet-cell">
         <span class="rank">${visibleIndex + 1}</span>
         <div class="name-text">
           <strong>${escapeHtml(item.subnet)}</strong>
           <span>#${escapeHtml(item.channelName)}</span>
+          ${renderLeaderBadges(item)}
         </div>
         ${renderStatus(item.status)}
       </div>
