@@ -1690,6 +1690,10 @@ function renderViews() {
   renderAnalytics(visibleItems);
 }
 
+function scrollToLab() {
+  document.querySelector(".lab-workbench, .market-board")?.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
 function renderSource() {
   const source = data.sourceMessage || {};
   const sourceLink = document.querySelector("#sourceLink");
@@ -1822,6 +1826,7 @@ rowsEl.addEventListener("click", (event) => {
 
   state.selectedKey = row.dataset.key;
   renderViews();
+  scrollToLab();
 });
 
 scatterPlotEl?.addEventListener("pointerover", (event) => {
@@ -1869,6 +1874,7 @@ leaderColumnsEl?.addEventListener("click", (event) => {
 
   state.selectedKey = row.dataset.key;
   renderViews();
+  scrollToLab();
 });
 
 document.addEventListener("click", (event) => {
@@ -1877,7 +1883,7 @@ document.addEventListener("click", (event) => {
 
   state.selectedKey = quickTarget.dataset.key;
   renderViews();
-  document.querySelector(".market-board")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  scrollToLab();
 });
 
 let lastMapWidth = 0;
