@@ -1875,7 +1875,7 @@ input:focus,
 .ranking-head,
 .row {
   display: grid;
-  grid-template-columns: minmax(260px, 1.05fr) minmax(360px, 1.4fr) minmax(110px, 0.45fr);
+  grid-template-columns: minmax(260px, 1.05fr) minmax(360px, 1.35fr) minmax(170px, 0.6fr);
   gap: 16px;
 }
 
@@ -2062,12 +2062,110 @@ input:focus,
 .votes {
   display: grid;
   justify-items: end;
-  gap: 4px;
+  gap: 5px;
+  min-width: 0;
 }
 
-.votes strong {
+.thumb-total {
+  display: inline-flex;
+  align-items: baseline;
+  justify-content: flex-end;
+  gap: 5px;
+  min-width: 0;
+}
+
+.thumb-total strong {
   font-size: 1.3rem;
   line-height: 1;
+}
+
+.thumb-total em {
+  color: var(--muted);
+  font-style: normal;
+  font-size: 0.72rem;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.order-value {
+  display: grid;
+  justify-items: end;
+  gap: 2px;
+  max-width: 100%;
+  padding: 6px 8px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #111927;
+  text-align: right;
+}
+
+.order-value em,
+.order-value b {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+
+.order-value em {
+  color: var(--muted);
+  font-style: normal;
+  font-size: 0.66rem;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.order-value b {
+  color: var(--ink);
+  font-size: 0.84rem;
+  line-height: 1.08;
+}
+
+.order-value-legit,
+.order-value-positive,
+.order-value-high {
+  border-color: rgba(66, 243, 111, 0.28);
+  background: var(--green-soft);
+}
+
+.order-value-legit b,
+.order-value-positive b,
+.order-value-high b {
+  color: var(--green);
+}
+
+.order-value-bunk,
+.order-value-negative {
+  border-color: rgba(255, 70, 91, 0.32);
+  background: var(--red-soft);
+}
+
+.order-value-bunk b,
+.order-value-negative b {
+  color: var(--red);
+}
+
+.order-value-burn,
+.order-value-some {
+  border-color: rgba(255, 171, 71, 0.28);
+  background: rgba(255, 171, 71, 0.12);
+}
+
+.order-value-burn b,
+.order-value-some b {
+  color: var(--amber);
+}
+
+.order-value-emission {
+  border-color: rgba(101, 168, 255, 0.3);
+  background: var(--blue-soft);
+}
+
+.order-value-emission b {
+  color: var(--blue);
+}
+
+.order-value-muted b,
+.order-value-flat b {
+  color: var(--faint);
 }
 
 .votes span,
@@ -2837,6 +2935,15 @@ input:focus,
 
   .votes {
     justify-items: start;
+  }
+
+  .thumb-total {
+    justify-content: flex-start;
+  }
+
+  .order-value {
+    justify-items: start;
+    text-align: left;
   }
 }
 

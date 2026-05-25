@@ -1459,6 +1459,56 @@ function renderLeaderColumns(visibleItems) {
   `;
 }
 
+function getSortContext(item) {
+  if (state.sort === "legit-ratio") {
+    return { label: "Legit score", value: `${formatRatio(getLegitScore(item))} score`, tone: "legit" };
+  }
+  if (state.sort === "bunk-ratio") {
+    return { label: "Bunk score", value: `${formatRatio(getBunkScore(item))} score`, tone: "bunk" };
+  }
+  if (state.sort === "votes") {
+    return { label: "Total thumbs", value: formatNumber(item.total), tone: item.total ? "neutral" : "muted" };
+  }
+  if (state.sort === "conviction") {
+    return { label: "Conviction", value: formatNumber(getCoVeScore(item)), tone: getTone(item) };
+  }
+  if (state.sort === "tao-flow") {
+    return {
+      label: "TAO Flow",
+      value: item.hasMarket ? formatSignedTao(item.taoFlow, 2) : "n/a",
+      tone: getFlowTone(item)
+    };
+  }
+  if (state.sort === "emission-share") {
+    return {
+      label: "Emission share",
+      value: formatSubnetEmission(item),
+      tone: Number.isFinite(item.subnetEmissionPct) ? "emission" : "muted"
+    };
+  }
+  if (state.sort === "burn-emission") {
+    return {
+      label: "Incentive burn",
+      value: formatBurnEmission(item),
+      tone: Number.isFinite(item.burnEmissionPct) ? "burn" : "muted"
+    };
+  }
+  if (state.sort === "hype") {
+    return { label: "Hype", value: formatNumber(item.hypeScore), tone: getHypeTone(item) };
+  }
+  if (state.sort === "name") {
+    return { label: "Name order", value: getTickerName(item), tone: "neutral" };
+  }
+  if (item.total === 0) {
+    return { label: "Thumb order", value: "No thumbs", tone: "muted" };
+  }
+  return {
+    label: "Thumb order",
+    value: `${formatNumber(item.up)} up / ${formatNumber(item.down)} down`,
+    tone: item.up >= item.down ? "legit" : "bunk"
+  };
+}
+
 function getBubbleBackgroundSupport(item) {
   if (!item.countsKnown || item.total === 0) return 50;
   return getLegitRatio(item) * 100;
@@ -1820,19 +1870,9 @@ function renderBubbleMap(visibleItems) {
 }
 
 function renderRows(visibleItems) {
-  const useLeaderColumns = state.sort === "thumbs-direction";
-
-  if (rankingHeadEl) rankingHeadEl.hidden = useLeaderColumns;
-  if (leaderColumnsEl) leaderColumnsEl.hidden = !useLeaderColumns;
-  rowsEl.hidden = useLeaderColumns;
-
-  if (useLeaderColumns) {
-    rowsEl.innerHTML = "";
-    renderLeaderColumns(visibleItems);
-    emptyStateEl.hidden = visibleItems.length !== 0;
-    return;
-  }
-
+  if (rankingHeadEl) rankingHeadEl.hidden = false;
+  if (leaderColumnsEl) leaderColumnsEl.hidden = true;
+  rowsEl.hidden = false;
   if (leaderColumnsEl) leaderColumnsEl.innerHTML = "";
 
   rowsEl.innerHTML = visibleItems.map((item, visibleIndex) => {
@@ -1849,6 +1889,7 @@ function renderRows(visibleItems) {
     const upLeaderRank = topUpLeaderRanks.get(item.key);
     const downLeaderRank = topDownLeaderRanks.get(item.key);
     const leaderClass = `${upLeaderRank ? " is-top-up" : ""}${downLeaderRank ? " is-top-down" : ""}`;
+    const sortContext = getSortContext(item);
 
     return `
     <article class="row ${getTone(item)}${leaderClass} ${item.key === state.selectedKey ? "is-selected" : ""}" data-key="${escapeHtml(item.key)}">
@@ -1868,7 +1909,14 @@ function renderRows(visibleItems) {
       </div>
 
       <div class="votes">
-        <strong>${formatNumber(item.total)}</strong>
+        <span class="order-value order-value-${escapeHtml(sortContext.tone)}">
+          <em>${escapeHtml(sortContext.label)}</em>
+          <b>${escapeHtml(sortContext.value)}</b>
+        </span>
+        <span class="thumb-total">
+          <strong>${formatNumber(item.total)}</strong>
+          <em>thumbs</em>
+        </span>
         <span>${scoreLabel}</span>
         <small>${confidenceLabel}</small>
         <a href="${escapeHtml(item.messageUrl)}" target="_blank" rel="noreferrer">Open</a>
