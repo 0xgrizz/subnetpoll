@@ -1836,7 +1836,9 @@ function renderBubbleMap(visibleItems) {
     const radius = bubble.size / 2 + 6;
     return sum + Math.PI * radius * radius;
   }, 0);
-  const height = getBubbleMapHeight(width, visibleItems, bubbleArea);
+  const layoutHeight = getBubbleMapHeight(width, visibleItems, bubbleArea);
+  const availableHeight = Math.round((mapShellEl || bubbleMapEl).clientHeight || 0);
+  const height = Math.max(layoutHeight, availableHeight > 120 ? availableHeight : 0);
   const placements = placeBubbles(bubbleItems, width, height);
   const layoutSignature = [
     width,
