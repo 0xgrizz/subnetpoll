@@ -688,10 +688,18 @@ input {
   height: 42px;
   border: 1px solid var(--line);
   border-radius: 8px;
-  background: #070b12;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.035), transparent),
+    #070b12;
   color: var(--ink);
   outline: none;
   padding: 0 12px;
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset;
+  transition: border-color var(--fast), box-shadow var(--fast), background var(--fast);
+}
+
+input::placeholder {
+  color: rgba(140, 150, 168, 0.76);
 }
 
 input:focus,
@@ -717,7 +725,12 @@ input:focus,
   padding: 4px;
   border: 1px solid var(--line);
   border-radius: 8px;
-  background: #070b12;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.012)),
+    #070b12;
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.04) inset,
+    0 10px 24px rgba(0, 0, 0, 0.12);
 }
 
 .segmented {
@@ -750,8 +763,13 @@ input:focus,
 .market-chip,
 .size-chip,
 .axis-chip {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   min-width: 0;
-  min-height: 34px;
+  min-height: 36px;
+  padding: 0 10px;
   border: 1px solid transparent;
   border-radius: 6px;
   background: transparent;
@@ -759,8 +777,26 @@ input:focus,
   cursor: pointer;
   font-size: 0.86rem;
   font-weight: 900;
+  line-height: 1.05;
   white-space: nowrap;
-  transition: background var(--fast), color var(--fast), border-color var(--fast), box-shadow var(--fast), transform var(--fast);
+  isolation: isolate;
+  transition: background var(--fast), color var(--fast), border-color var(--fast), box-shadow var(--fast), transform var(--fast), filter var(--fast);
+}
+
+.segment::before,
+.sort-chip::before,
+.signal-chip::before,
+.market-chip::before,
+.size-chip::before,
+.axis-chip::before {
+  content: "";
+  position: absolute;
+  inset: 1px;
+  z-index: -1;
+  border-radius: 5px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.09), transparent);
+  opacity: 0;
+  transition: opacity var(--fast);
 }
 
 .segment:hover,
@@ -771,14 +807,29 @@ input:focus,
 .axis-chip:hover {
   border-color: var(--line-strong);
   color: var(--ink);
+  transform: translateY(-1px);
+}
+
+.segment:hover::before,
+.sort-chip:hover::before,
+.signal-chip:hover::before,
+.market-chip:hover::before,
+.size-chip:hover::before,
+.axis-chip:hover::before {
+  opacity: 1;
+}
+
+.segment:active,
+.sort-chip:active,
+.signal-chip:active,
+.market-chip:active,
+.size-chip:active,
+.axis-chip:active {
+  transform: translateY(0);
 }
 
 .segment {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
   gap: 7px;
-  padding: 0 8px;
 }
 
 .segment b {
@@ -801,6 +852,10 @@ input:focus,
 .axis-chip.is-active {
   color: #061008;
   background: #ffffff;
+  border-color: rgba(255, 255, 255, 0.72);
+  box-shadow:
+    0 10px 24px rgba(255, 255, 255, 0.08),
+    0 1px 0 rgba(255, 255, 255, 0.45) inset;
 }
 
 .segment.is-active b {
@@ -812,12 +867,26 @@ input:focus,
   background: var(--green);
 }
 
-.signal-chip.is-active {
-  background: #ffffff;
+.segment[data-filter="bunk"].is-active,
+.sort-chip[data-sort="bunk-ratio"].is-active,
+.signal-chip[data-signal-filter="contested"].is-active {
+  background: var(--red);
 }
 
+.segment[data-filter="tie"].is-active,
+.sort-chip[data-sort="tao-flow"].is-active,
 .market-chip.is-active {
   background: var(--blue);
+}
+
+.segment[data-filter="no-votes"].is-active,
+.sort-chip[data-sort="name"].is-active {
+  color: var(--ink);
+  background: #2f394b;
+}
+
+.signal-chip.is-active {
+  background: #ffffff;
 }
 
 .size-chip.is-active {
@@ -1019,10 +1088,15 @@ input:focus,
   overflow: hidden;
   min-height: min(620px, var(--map-panel-height));
   contain: layout paint;
+  touch-action: none;
 }
 
 .bubble-map.is-physics-active {
   cursor: progress;
+}
+
+.bubble-map.is-dragging {
+  cursor: grabbing;
 }
 
 .bubble {
@@ -1038,7 +1112,7 @@ input:focus,
   border: 2px solid rgba(255, 255, 255, 0.72);
   border-radius: 999px;
   color: #ffffff;
-  cursor: pointer;
+  cursor: grab;
   outline: none;
   overflow: hidden;
   --bubble-visual-opacity: 0.78;
@@ -1089,6 +1163,14 @@ input:focus,
     0 0 40px var(--glow-color),
     inset 0 0 24px rgba(255, 255, 255, 0.24),
     inset 0 -26px 28px rgba(0, 0, 0, 0.42);
+}
+
+.bubble.is-dragging {
+  --bubble-scale: 1.12;
+  --bubble-visual-opacity: 1;
+  cursor: grabbing;
+  filter: saturate(1.16) brightness(1.1);
+  z-index: 40 !important;
 }
 
 .bubble.is-falling {

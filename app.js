@@ -59,6 +59,12 @@ const BUBBLE_PHYSICS_RULES = Object.freeze({
     restitution: 0.34,
     correction: 0.76
   },
+  drag: {
+    velocityScale: 0.62,
+    wakeMs: 1800,
+    moveThreshold: 4,
+    damping: 0.82
+  },
   settle: {
     minMs: 1250,
     maxMs: 3200,
@@ -104,6 +110,9 @@ const sizeButtons = Array.from(document.querySelectorAll("[data-size-by]"));
 const axisButtons = Array.from(document.querySelectorAll("[data-axis][data-metric]"));
 let bubblePhysicsFrame = 0;
 let bubblePhysicsGeneration = 0;
+let bubblePhysicsState = null;
+let bubbleDrag = null;
+let suppressBubbleClick = false;
 let lastBubbleLayoutSignature = "";
 
 const thumbsUpNames = new Set(["👍", "thumbsup", "+1"]);
@@ -1351,100 +1360,130 @@ function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max);
 }
 
+function getBubblePhysicsConfig(width) {
+  const compact = width < BUBBLE_LAYOUT_RULES.compactWidth;
+  return {
+    compact,
+    padding: compact ? BUBBLE_LAYOUT_RULES.placement.padding.compact : BUBBLE_LAYOUT_RULES.placement.padding.full,
+    gap: compact ? BUBBLE_LAYOUT_RULES.placement.gap.compact : BUBBLE_LAYOUT_RULES.placement.gap.full
+  };
+}
+
+function getBubbleMass(radius) {
+  return Math.max(
+    BUBBLE_PHYSICS_RULES.mass.min,
+    Math.pow(radius / BUBBLE_PHYSICS_RULES.mass.radiusBase, BUBBLE_PHYSICS_RULES.mass.exponent)
+  );
+}
+
 function setBubblePosition(element, x, y, opacity = 1) {
   element.style.left = `${x}px`;
   element.style.top = `${y}px`;
   element.style.setProperty("--bubble-opacity", opacity.toFixed(3));
 }
 
-function settleBubblePlacements(placements) {
-  placements.forEach((placement) => {
-    const element = bubbleMapEl.querySelector(`[data-key="${CSS.escape(placement.item.key)}"]`);
-    if (!element) return;
-    setBubblePosition(element, placement.x, placement.y, 1);
-    element.classList.remove("is-falling");
-    element.classList.add("is-settled");
-  });
-}
-
-function animateBubblePhysics(placements, width, height, shouldAnimate) {
-  cancelAnimationFrame(bubblePhysicsFrame);
-  bubblePhysicsGeneration += 1;
-  const generation = bubblePhysicsGeneration;
-  const compact = width < BUBBLE_LAYOUT_RULES.compactWidth;
-  const padding = compact ? BUBBLE_LAYOUT_RULES.placement.padding.compact : BUBBLE_LAYOUT_RULES.placement.padding.full;
-  const gap = compact ? BUBBLE_LAYOUT_RULES.placement.gap.compact : BUBBLE_LAYOUT_RULES.placement.gap.full;
-
-  if (!shouldAnimate || prefersReducedMotion()) {
-    bubbleMapEl.classList.remove("is-physics-active");
-    settleBubblePlacements(placements);
-    return;
-  }
-
-  bubbleMapEl.classList.add("is-physics-active");
-  const bodies = placements.map((placement, index) => {
-    const element = bubbleMapEl.querySelector(`[data-key="${CSS.escape(placement.item.key)}"]`);
-    const radius = placement.radius;
-    const spawnY = -radius -
-      BUBBLE_PHYSICS_RULES.spawn.topOffset -
-      hashUnit(placement.item.key, 33) * BUBBLE_PHYSICS_RULES.spawn.yJitter;
-    const startX = clamp(
+function buildBubbleBody(placement, index, shouldAnimate, width, padding) {
+  const element = bubbleMapEl.querySelector(`[data-key="${CSS.escape(placement.item.key)}"]`);
+  const radius = placement.radius;
+  const spawnY = -radius -
+    BUBBLE_PHYSICS_RULES.spawn.topOffset -
+    hashUnit(placement.item.key, 33) * BUBBLE_PHYSICS_RULES.spawn.yJitter;
+  const startX = shouldAnimate
+    ? clamp(
       placement.x +
         (hashUnit(placement.item.key, 31) - 0.5) *
         Math.min(width * BUBBLE_PHYSICS_RULES.spawn.xJitterRatio, BUBBLE_PHYSICS_RULES.spawn.xJitterCap),
       radius + padding,
       width - radius - padding
-    );
+    )
+    : placement.x;
 
-    if (element) {
-      element.classList.add("is-falling");
-      element.classList.remove("is-settled");
-      setBubblePosition(element, startX, spawnY, 0);
-    }
+  return {
+    key: placement.item.key,
+    element,
+    x: startX,
+    y: shouldAnimate ? spawnY - index * 1.15 : placement.y,
+    vx: shouldAnimate ? (hashUnit(placement.item.key, 35) - 0.5) * BUBBLE_PHYSICS_RULES.spawn.velocity : 0,
+    vy: 0,
+    targetX: placement.x,
+    targetY: placement.y,
+    radius,
+    mass: getBubbleMass(radius),
+    delay: shouldAnimate ? Math.min(index * BUBBLE_PHYSICS_RULES.spawn.cascadeMs, BUBBLE_PHYSICS_RULES.spawn.cascadeCap) : 0,
+    opacity: shouldAnimate ? 0 : 1,
+    active: !shouldAnimate,
+    dragging: false
+  };
+}
 
-    return {
-      element,
-      x: startX,
-      y: spawnY - index * 1.15,
-      vx: (hashUnit(placement.item.key, 35) - 0.5) * BUBBLE_PHYSICS_RULES.spawn.velocity,
-      vy: 0,
-      targetX: placement.x,
-      targetY: placement.y,
-      radius,
-      mass: Math.max(
-        BUBBLE_PHYSICS_RULES.mass.min,
-        Math.pow(radius / BUBBLE_PHYSICS_RULES.mass.radiusBase, BUBBLE_PHYSICS_RULES.mass.exponent)
-      ),
-      delay: Math.min(index * BUBBLE_PHYSICS_RULES.spawn.cascadeMs, BUBBLE_PHYSICS_RULES.spawn.cascadeCap),
-      active: false
-    };
-  });
+function applyBubbleBounds(body, simulation) {
+  const { width, height, padding } = simulation;
 
-  const startedAt = performance.now();
-  let previous = startedAt;
-
-  function finish() {
-    if (generation !== bubblePhysicsGeneration) return;
-    bubbleMapEl.classList.remove("is-physics-active");
-    settleBubblePlacements(placements);
+  if (body.x < body.radius + padding) {
+    body.x = body.radius + padding;
+    body.vx = Math.abs(body.vx) * BUBBLE_PHYSICS_RULES.motion.wallRestitution;
+  } else if (body.x > width - body.radius - padding) {
+    body.x = width - body.radius - padding;
+    body.vx = -Math.abs(body.vx) * BUBBLE_PHYSICS_RULES.motion.wallRestitution;
   }
 
-  function step(now) {
-    if (generation !== bubblePhysicsGeneration) return;
+  if (body.y < body.radius + padding) {
+    body.y = body.radius + padding;
+    body.vy = Math.abs(body.vy) * BUBBLE_PHYSICS_RULES.motion.wallRestitution;
+  } else if (body.y > height - body.radius - padding) {
+    body.y = height - body.radius - padding;
+    body.vy = -Math.abs(body.vy) * BUBBLE_PHYSICS_RULES.motion.floorRestitution;
+    body.vx *= BUBBLE_PHYSICS_RULES.motion.floorFriction;
+  }
+}
 
-    const elapsed = now - startedAt;
-    const delta = Math.min((now - previous) / 16.67, BUBBLE_PHYSICS_RULES.motion.maxDelta);
-    previous = now;
-    let distanceTotal = 0;
-    let velocityTotal = 0;
-    let activeCount = 0;
+function paintBubbleBody(body) {
+  if (!body.element) return;
+  setBubblePosition(body.element, body.x, body.y, body.opacity);
+}
 
-    bodies.forEach((body) => {
-      const localElapsed = elapsed - body.delay;
-      if (localElapsed <= 0) return;
+function settleBubbleSimulation(simulation, snapToTargets = false) {
+  bubblePhysicsFrame = 0;
+  bubbleMapEl.classList.remove("is-physics-active", "is-dragging");
 
-      body.active = true;
-      activeCount += 1;
+  simulation.bodies.forEach((body) => {
+    if (snapToTargets) {
+      body.x = body.targetX;
+      body.y = body.targetY;
+      body.vx = 0;
+      body.vy = 0;
+    }
+
+    body.opacity = 1;
+    body.active = true;
+    body.dragging = false;
+    paintBubbleBody(body);
+    body.element?.classList.remove("is-falling", "is-dragging");
+    body.element?.classList.add("is-settled");
+  });
+}
+
+function runBubblePhysics(now) {
+  const simulation = bubblePhysicsState;
+  bubblePhysicsFrame = 0;
+
+  if (!simulation || simulation.generation !== bubblePhysicsGeneration) return;
+
+  const elapsed = now - simulation.startedAt;
+  const delta = Math.min((now - simulation.previous) / 16.67, BUBBLE_PHYSICS_RULES.motion.maxDelta);
+  simulation.previous = now;
+  let distanceTotal = 0;
+  let velocityTotal = 0;
+  let activeCount = 0;
+
+  simulation.bodies.forEach((body) => {
+    const localElapsed = elapsed - body.delay;
+    if (localElapsed <= 0) return;
+
+    body.active = true;
+    activeCount += 1;
+
+    if (!body.dragging) {
       const pull = BUBBLE_PHYSICS_RULES.motion.targetPull / body.mass;
       const gravity = BUBBLE_PHYSICS_RULES.motion.gravity +
         body.radius / BUBBLE_PHYSICS_RULES.motion.gravityRadiusDivisor;
@@ -1460,91 +1499,134 @@ function animateBubblePhysics(placements, width, height, shouldAnimate) {
       body.vy *= damping;
       body.x += body.vx * delta;
       body.y += body.vy * delta;
-
-      if (body.x < body.radius + padding) {
-        body.x = body.radius + padding;
-        body.vx = Math.abs(body.vx) * BUBBLE_PHYSICS_RULES.motion.wallRestitution;
-      } else if (body.x > width - body.radius - padding) {
-        body.x = width - body.radius - padding;
-        body.vx = -Math.abs(body.vx) * BUBBLE_PHYSICS_RULES.motion.wallRestitution;
-      }
-
-      if (body.y > height - body.radius - padding) {
-        body.y = height - body.radius - padding;
-        body.vy = -Math.abs(body.vy) * BUBBLE_PHYSICS_RULES.motion.floorRestitution;
-        body.vx *= BUBBLE_PHYSICS_RULES.motion.floorFriction;
-      }
-    });
-
-    for (let index = 0; index < bodies.length; index += 1) {
-      const a = bodies[index];
-      if (!a.active) continue;
-
-      for (let nextIndex = index + 1; nextIndex < bodies.length; nextIndex += 1) {
-        const b = bodies[nextIndex];
-        if (!b.active) continue;
-
-        let dx = b.x - a.x;
-        let dy = b.y - a.y;
-        let distance = Math.hypot(dx, dy);
-        if (distance === 0) {
-          dx = hashUnit(`${a.targetX}:${b.targetX}`, 41) - 0.5;
-          dy = hashUnit(`${a.targetY}:${b.targetY}`, 43) - 0.5;
-          distance = Math.hypot(dx, dy) || 1;
-        }
-
-        const minDistance = a.radius + b.radius + gap;
-        if (distance >= minDistance) continue;
-
-        const nx = dx / distance;
-        const ny = dy / distance;
-        const overlap = minDistance - distance;
-        const inverseA = 1 / a.mass;
-        const inverseB = 1 / b.mass;
-        const inverseTotal = inverseA + inverseB;
-        const push = overlap * BUBBLE_PHYSICS_RULES.collision.correction / inverseTotal;
-
-        a.x -= nx * push * inverseA;
-        a.y -= ny * push * inverseA;
-        b.x += nx * push * inverseB;
-        b.y += ny * push * inverseB;
-
-        const relativeVelocity = (b.vx - a.vx) * nx + (b.vy - a.vy) * ny;
-        if (relativeVelocity < 0) {
-          const impulse = -(1 + BUBBLE_PHYSICS_RULES.collision.restitution) * relativeVelocity / inverseTotal;
-          a.vx -= nx * impulse * inverseA;
-          a.vy -= ny * impulse * inverseA;
-          b.vx += nx * impulse * inverseB;
-          b.vy += ny * impulse * inverseB;
-        }
-      }
+    } else {
+      body.vx *= Math.pow(BUBBLE_PHYSICS_RULES.drag.damping, delta);
+      body.vy *= Math.pow(BUBBLE_PHYSICS_RULES.drag.damping, delta);
     }
 
-    bodies.forEach((body) => {
-      if (!body.active || !body.element) return;
-      body.x = clamp(body.x, body.radius + padding, width - body.radius - padding);
-      body.y = clamp(body.y, -body.radius * 2, height - body.radius - padding);
-      const opacity = Math.min(1, Math.max(0, (elapsed - body.delay) / BUBBLE_PHYSICS_RULES.opacityMs));
-      setBubblePosition(body.element, body.x, body.y, opacity);
-      distanceTotal += Math.hypot(body.targetX - body.x, body.targetY - body.y);
-      velocityTotal += Math.hypot(body.vx, body.vy);
-    });
+    applyBubbleBounds(body, simulation);
+  });
 
-    const averageDistance = activeCount ? distanceTotal / activeCount : Infinity;
-    const averageVelocity = activeCount ? velocityTotal / activeCount : Infinity;
-    const settled = elapsed > BUBBLE_PHYSICS_RULES.settle.minMs &&
-      averageDistance < BUBBLE_PHYSICS_RULES.settle.distance &&
-      averageVelocity < BUBBLE_PHYSICS_RULES.settle.velocity;
+  for (let index = 0; index < simulation.bodies.length; index += 1) {
+    const a = simulation.bodies[index];
+    if (!a.active) continue;
 
-    if (settled || elapsed > BUBBLE_PHYSICS_RULES.settle.maxMs) {
-      finish();
-      return;
+    for (let nextIndex = index + 1; nextIndex < simulation.bodies.length; nextIndex += 1) {
+      const b = simulation.bodies[nextIndex];
+      if (!b.active) continue;
+
+      let dx = b.x - a.x;
+      let dy = b.y - a.y;
+      let distance = Math.hypot(dx, dy);
+      if (distance === 0) {
+        dx = hashUnit(`${a.targetX}:${b.targetX}`, 41) - 0.5;
+        dy = hashUnit(`${a.targetY}:${b.targetY}`, 43) - 0.5;
+        distance = Math.hypot(dx, dy) || 1;
+      }
+
+      const minDistance = a.radius + b.radius + simulation.gap;
+      if (distance >= minDistance) continue;
+
+      const nx = dx / distance;
+      const ny = dy / distance;
+      const overlap = minDistance - distance;
+      const inverseA = a.dragging ? 0 : 1 / a.mass;
+      const inverseB = b.dragging ? 0 : 1 / b.mass;
+      const inverseTotal = inverseA + inverseB || 1;
+      const push = overlap * BUBBLE_PHYSICS_RULES.collision.correction / inverseTotal;
+
+      a.x -= nx * push * inverseA;
+      a.y -= ny * push * inverseA;
+      b.x += nx * push * inverseB;
+      b.y += ny * push * inverseB;
+
+      const relativeVelocity = (b.vx - a.vx) * nx + (b.vy - a.vy) * ny;
+      if (relativeVelocity < 0) {
+        const impulse = -(1 + BUBBLE_PHYSICS_RULES.collision.restitution) * relativeVelocity / inverseTotal;
+        a.vx -= nx * impulse * inverseA;
+        a.vy -= ny * impulse * inverseA;
+        b.vx += nx * impulse * inverseB;
+        b.vy += ny * impulse * inverseB;
+      }
     }
-
-    bubblePhysicsFrame = requestAnimationFrame(step);
   }
 
-  bubblePhysicsFrame = requestAnimationFrame(step);
+  simulation.bodies.forEach((body) => {
+    if (!body.active) return;
+    applyBubbleBounds(body, simulation);
+    body.opacity = simulation.intro
+      ? Math.min(1, Math.max(0, (elapsed - body.delay) / BUBBLE_PHYSICS_RULES.opacityMs))
+      : 1;
+    paintBubbleBody(body);
+    distanceTotal += Math.hypot(body.targetX - body.x, body.targetY - body.y);
+    velocityTotal += Math.hypot(body.vx, body.vy);
+  });
+
+  const averageDistance = activeCount ? distanceTotal / activeCount : Infinity;
+  const averageVelocity = activeCount ? velocityTotal / activeCount : Infinity;
+  const hasDrag = Boolean(bubbleDrag);
+  const recentlyTouched = now - simulation.lastInteraction < BUBBLE_PHYSICS_RULES.drag.wakeMs;
+  const canSettle = !hasDrag && !recentlyTouched && elapsed > BUBBLE_PHYSICS_RULES.settle.minMs;
+  const idleAfterDrag = !simulation.intro && !hasDrag && simulation.lastInteraction > 0 && !recentlyTouched;
+  const settled = canSettle &&
+    averageDistance < BUBBLE_PHYSICS_RULES.settle.distance &&
+    averageVelocity < BUBBLE_PHYSICS_RULES.settle.velocity;
+  const expired = simulation.intro && elapsed > BUBBLE_PHYSICS_RULES.settle.maxMs;
+
+  if (settled || expired || idleAfterDrag) {
+    settleBubbleSimulation(simulation, simulation.intro);
+    return;
+  }
+
+  bubblePhysicsFrame = requestAnimationFrame(runBubblePhysics);
+}
+
+function wakeBubblePhysics() {
+  if (!bubblePhysicsState || bubblePhysicsFrame) return;
+  bubblePhysicsState.previous = performance.now();
+  bubbleMapEl.classList.add("is-physics-active");
+  bubblePhysicsFrame = requestAnimationFrame(runBubblePhysics);
+}
+
+function animateBubblePhysics(placements, width, height, shouldAnimate) {
+  cancelAnimationFrame(bubblePhysicsFrame);
+  bubblePhysicsFrame = 0;
+  bubblePhysicsGeneration += 1;
+  const generation = bubblePhysicsGeneration;
+  const config = getBubblePhysicsConfig(width);
+  const shouldDrop = shouldAnimate && !prefersReducedMotion();
+  const bodies = placements.map((placement, index) => buildBubbleBody(placement, index, shouldDrop, width, config.padding));
+  const bodyMap = new Map(bodies.map((body) => [body.key, body]));
+
+  bubblePhysicsState = {
+    generation,
+    width,
+    height,
+    padding: config.padding,
+    gap: config.gap,
+    bodies,
+    bodyMap,
+    intro: shouldDrop,
+    startedAt: performance.now(),
+    previous: performance.now(),
+    lastInteraction: 0
+  };
+
+  bodies.forEach((body) => {
+    if (!body.element) return;
+    body.element.classList.toggle("is-falling", shouldDrop);
+    body.element.classList.toggle("is-settled", !shouldDrop);
+    body.element.classList.remove("is-dragging");
+    paintBubbleBody(body);
+  });
+
+  if (!shouldDrop) {
+    settleBubbleSimulation(bubblePhysicsState);
+    return;
+  }
+
+  bubbleMapEl.classList.add("is-physics-active");
+  bubblePhysicsFrame = requestAnimationFrame(runBubblePhysics);
 }
 
 function renderBubbleMap(visibleItems) {
@@ -1552,6 +1634,9 @@ function renderBubbleMap(visibleItems) {
 
   if (visibleItems.length === 0) {
     cancelAnimationFrame(bubblePhysicsFrame);
+    bubblePhysicsFrame = 0;
+    bubblePhysicsState = null;
+    bubbleDrag = null;
     lastBubbleLayoutSignature = "";
     bubbleMapEl.innerHTML = "";
     bubbleMapEl.style.height = "";
@@ -1694,6 +1779,27 @@ function scrollToLab() {
   document.querySelector(".lab-workbench, .market-board")?.scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
+function syncSelectedElements() {
+  document.querySelectorAll(".bubble, .row, .leader-row, .scatter-pin").forEach((element) => {
+    element.classList.toggle("is-selected", element.dataset.key === state.selectedKey);
+  });
+}
+
+function selectItem(key, options = {}) {
+  state.selectedKey = key;
+
+  if (options.layout) {
+    renderViews();
+  } else {
+    const visibleItems = getVisibleItems();
+    renderMapDetail(getSelectedItem(visibleItems));
+    renderAnalytics(visibleItems);
+    syncSelectedElements();
+  }
+
+  if (options.scroll) scrollToLab();
+}
+
 function renderSource() {
   const source = data.sourceMessage || {};
   const sourceLink = document.querySelector("#sourceLink");
@@ -1810,12 +1916,127 @@ sizeButtons.forEach((button) => {
   });
 });
 
+function getBubblePointerPosition(event) {
+  const rect = bubbleMapEl.getBoundingClientRect();
+  return {
+    x: event.clientX - rect.left,
+    y: event.clientY - rect.top
+  };
+}
+
+function startBubbleDrag(event) {
+  const bubble = event.target.closest(".bubble");
+  if (!bubble || !bubblePhysicsState) return;
+
+  const body = bubblePhysicsState.bodyMap.get(bubble.dataset.key);
+  if (!body) return;
+
+  const point = getBubblePointerPosition(event);
+  bubbleDrag = {
+    pointerId: event.pointerId,
+    key: body.key,
+    offsetX: body.x - point.x,
+    offsetY: body.y - point.y,
+    lastX: body.x,
+    lastY: body.y,
+    lastT: performance.now(),
+    moved: false
+  };
+
+  body.dragging = true;
+  body.active = true;
+  body.delay = 0;
+  body.opacity = 1;
+  bubblePhysicsState.intro = false;
+  bubblePhysicsState.lastInteraction = performance.now();
+  bubbleMapEl.classList.add("is-dragging");
+  body.element?.classList.add("is-dragging");
+  body.element?.setPointerCapture?.(event.pointerId);
+  wakeBubblePhysics();
+  event.preventDefault();
+}
+
+function moveBubbleDrag(event) {
+  if (!bubbleDrag || event.pointerId !== bubbleDrag.pointerId || !bubblePhysicsState) return;
+
+  const body = bubblePhysicsState.bodyMap.get(bubbleDrag.key);
+  if (!body) return;
+
+  const point = getBubblePointerPosition(event);
+  const now = performance.now();
+  const nextX = clamp(point.x + bubbleDrag.offsetX, body.radius + bubblePhysicsState.padding, bubblePhysicsState.width - body.radius - bubblePhysicsState.padding);
+  const nextY = clamp(point.y + bubbleDrag.offsetY, body.radius + bubblePhysicsState.padding, bubblePhysicsState.height - body.radius - bubblePhysicsState.padding);
+  const elapsed = Math.max(16, now - bubbleDrag.lastT);
+  const distance = Math.hypot(nextX - bubbleDrag.lastX, nextY - bubbleDrag.lastY);
+
+  if (distance > BUBBLE_PHYSICS_RULES.drag.moveThreshold) bubbleDrag.moved = true;
+
+  body.x = nextX;
+  body.y = nextY;
+  body.vx = clamp(
+    (nextX - bubbleDrag.lastX) / elapsed * 16.67 * BUBBLE_PHYSICS_RULES.drag.velocityScale,
+    -BUBBLE_PHYSICS_RULES.spawn.velocity * 2,
+    BUBBLE_PHYSICS_RULES.spawn.velocity * 2
+  );
+  body.vy = clamp(
+    (nextY - bubbleDrag.lastY) / elapsed * 16.67 * BUBBLE_PHYSICS_RULES.drag.velocityScale,
+    -BUBBLE_PHYSICS_RULES.spawn.velocity * 2,
+    BUBBLE_PHYSICS_RULES.spawn.velocity * 2
+  );
+  body.opacity = 1;
+  bubblePhysicsState.lastInteraction = now;
+  bubbleDrag.lastX = nextX;
+  bubbleDrag.lastY = nextY;
+  bubbleDrag.lastT = now;
+  paintBubbleBody(body);
+  wakeBubblePhysics();
+  event.preventDefault();
+}
+
+function endBubbleDrag(event) {
+  if (!bubbleDrag || event.pointerId !== bubbleDrag.pointerId || !bubblePhysicsState) return;
+
+  const body = bubblePhysicsState.bodyMap.get(bubbleDrag.key);
+  const moved = bubbleDrag.moved;
+
+  if (body) {
+    body.dragging = false;
+    body.opacity = 1;
+    body.element?.classList.remove("is-dragging");
+    body.element?.releasePointerCapture?.(event.pointerId);
+  }
+
+  bubbleMapEl.classList.remove("is-dragging");
+  bubblePhysicsState.lastInteraction = performance.now();
+  wakeBubblePhysics();
+
+  if (moved) {
+    suppressBubbleClick = true;
+    selectItem(bubbleDrag.key, { layout: false });
+    window.setTimeout(() => {
+      suppressBubbleClick = false;
+    }, 0);
+  }
+
+  bubbleDrag = null;
+  event.preventDefault();
+}
+
+bubbleMapEl.addEventListener("pointerdown", startBubbleDrag);
+bubbleMapEl.addEventListener("pointermove", moveBubbleDrag);
+bubbleMapEl.addEventListener("pointerup", endBubbleDrag);
+bubbleMapEl.addEventListener("pointercancel", endBubbleDrag);
+
 bubbleMapEl.addEventListener("click", (event) => {
+  if (suppressBubbleClick) {
+    suppressBubbleClick = false;
+    return;
+  }
+
   const bubble = event.target.closest(".bubble");
   if (!bubble) return;
 
-  state.selectedKey = bubble.dataset.key;
-  renderViews();
+  selectItem(bubble.dataset.key, { layout: true });
 });
 
 rowsEl.addEventListener("click", (event) => {
