@@ -263,6 +263,7 @@ h2 {
 }
 
 .app-header,
+.hero-stats,
 .control-deck,
 .verdict-card,
 .distribution-card,
@@ -275,48 +276,53 @@ h2 {
 }
 
 .control-deck {
+  animation-delay: 180ms;
+}
+
+.hero-stats {
   animation-delay: 35ms;
 }
 
 .verdict-card {
-  animation-delay: 70ms;
-}
-
-.distribution-card {
   animation-delay: 105ms;
 }
 
+.distribution-card {
+  animation-delay: 125ms;
+}
+
 .audit-card {
-  animation-delay: 140ms;
+  animation-delay: 145ms;
 }
 
 .signal-panel:nth-child(1) {
-  animation-delay: 170ms;
+  animation-delay: 250ms;
 }
 
 .signal-panel:nth-child(2) {
-  animation-delay: 200ms;
+  animation-delay: 280ms;
 }
 
 .signal-panel:nth-child(3) {
-  animation-delay: 230ms;
+  animation-delay: 310ms;
 }
 
 .market-board {
-  animation-delay: 260ms;
+  animation-delay: 220ms;
 }
 
 .ranking-board {
-  animation-delay: 300ms;
+  animation-delay: 340ms;
 }
 
 .analytics-board {
-  animation-delay: 340ms;
+  animation-delay: 70ms;
 }
 
 .control-deck {
   display: grid;
   gap: 12px;
+  margin-top: 12px;
   padding: 12px;
 }
 
@@ -624,6 +630,10 @@ h2 {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 8px;
+}
+
+.hero-stats {
+  margin-top: 12px;
 }
 
 .stat {
@@ -1898,8 +1908,47 @@ input:focus,
 }
 
 .analytics-board {
+  position: relative;
   overflow: hidden;
   margin-top: 12px;
+}
+
+.featured-insight {
+  --analytics-panel-height: clamp(280px, 38vh, 420px);
+  isolation: isolate;
+  border-color: rgba(255, 171, 71, 0.38);
+  background:
+    linear-gradient(145deg, rgba(255, 171, 71, 0.1), transparent 34%),
+    linear-gradient(315deg, rgba(101, 168, 255, 0.1), transparent 42%),
+    rgba(11, 16, 25, 0.96);
+  box-shadow:
+    0 28px 90px rgba(0, 0, 0, 0.5),
+    0 0 0 1px rgba(255, 171, 71, 0.08) inset;
+}
+
+.featured-insight::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 4;
+  height: 3px;
+  background: linear-gradient(90deg, var(--green), var(--amber), var(--red));
+}
+
+.featured-insight .board-head {
+  min-height: 76px;
+  background:
+    linear-gradient(90deg, rgba(255, 171, 71, 0.14), transparent 46%),
+    linear-gradient(180deg, #111927, #0b1019);
+}
+
+.featured-insight .scatter-plot {
+  background:
+    linear-gradient(rgba(255, 255, 255, 0.032) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.032) 1px, transparent 1px),
+    radial-gradient(circle at 50% 8%, rgba(255, 171, 71, 0.1), transparent 34%),
+    #05080e;
+  background-size: 40px 40px, 40px 40px, auto, auto;
 }
 
 .analytics-summary {
