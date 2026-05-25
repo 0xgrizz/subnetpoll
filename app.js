@@ -82,7 +82,8 @@ const state = {
   sizeBy: "votes",
   axisX: "support",
   axisY: "tao-flow",
-  axisZ: "thumbs",
+  axisZ: "emission-share",
+  axisSize: "thumbs",
   selectedKey: null
 };
 
@@ -1017,6 +1018,23 @@ function getScaledRadius(value, min, max, values) {
   return min + Math.pow(normalized, 0.58) * (max - min);
 }
 
+function getAxisRange(values, paddingRatio = 0.1) {
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const padding = (max - min || 1) * paddingRatio;
+  return {
+    min,
+    max,
+    low: min - padding,
+    high: max + padding
+  };
+}
+
+function scaleAxisUnit(value, range) {
+  if (!range || range.high === range.low) return 0;
+  return clamp(((value - range.low) / (range.high - range.low)) * 2 - 1, -1, 1);
+}
+
 function getPearson(points) {
   if (points.length < 3) return null;
   const meanX = points.reduce((sum, point) => sum + point.x, 0) / points.length;
@@ -1106,52 +1124,39 @@ function renderAnalytics(sourceItems) {
 
   const xDefinition = metricDefinitions[state.axisX] || metricDefinitions.support;
   const yDefinition = metricDefinitions[state.axisY] || metricDefinitions["tao-flow"];
-  const zDefinition = metricDefinitions[state.axisZ] || metricDefinitions.thumbs;
+  const zDefinition = metricDefinitions[state.axisZ] || metricDefinitions["emission-share"];
+  const sizeDefinition = metricDefinitions[state.axisSize] || metricDefinitions.thumbs;
   const points = sourceItems
     .map((item) => ({
       item,
       x: getMetricValue(item, state.axisX),
       y: getMetricValue(item, state.axisY),
-      zRaw: getMetricValue(item, state.axisZ)
+      z: getMetricValue(item, state.axisZ),
+      sizeRaw: getMetricValue(item, state.axisSize)
     }))
     .map((point) => ({
       ...point,
-      z: getZScaleValue(point.zRaw, state.axisZ)
+      size: getZScaleValue(point.sizeRaw, state.axisSize)
     }))
-    .filter((point) => point.x != null && point.y != null);
+    .filter((point) => point.x != null && point.y != null && point.z != null);
 
-  analyticsSummaryEl.textContent = `${xDefinition.label} vs ${yDefinition.label}, Z ${zDefinition.label} across ${formatNumber(points.length)} visible subnets`;
+  analyticsSummaryEl.textContent = `${xDefinition.label} × ${yDefinition.label} × ${zDefinition.label}, size ${sizeDefinition.label} across ${formatNumber(points.length)} visible subnets`;
+  scatterPlotEl.classList.toggle("is-three", points.length >= 2);
 
   if (points.length < 2) {
-    scatterPlotEl.innerHTML = `<p class="empty-state">Not enough visible subnets for this comparison.</p>`;
+    scatterPlotEl.innerHTML = `<p class="empty-state">Not enough visible subnets for this 3D comparison.</p>`;
     analyticsStatsEl.innerHTML = "";
     return;
   }
 
   const xValues = points.map((point) => point.x);
   const yValues = points.map((point) => point.y);
-  const minX = Math.min(...xValues);
-  const maxX = Math.max(...xValues);
-  const minY = Math.min(...yValues);
-  const maxY = Math.max(...yValues);
-  const zValues = points.map((point) => point.z).filter(Number.isFinite);
-  const xPad = (maxX - minX || 1) * 0.08;
-  const yPad = (maxY - minY || 1) * 0.12;
-  const xLow = minX - xPad;
-  const xHigh = maxX + xPad;
-  const yLow = minY - yPad;
-  const yHigh = maxY + yPad;
-  const plot = { left: 54, right: 972, top: 34, bottom: 506 };
-  const scaleX = (value) => plot.left + ((value - xLow) / (xHigh - xLow || 1)) * (plot.right - plot.left);
-  const scaleY = (value) => plot.bottom - ((value - yLow) / (yHigh - yLow || 1)) * (plot.bottom - plot.top);
+  const zValues = points.map((point) => point.z);
+  const sizeValues = points.map((point) => point.size).filter(Number.isFinite);
+  const xRange = getAxisRange(xValues, 0.08);
+  const yRange = getAxisRange(yValues, 0.1);
+  const zRange = getAxisRange(zValues, 0.1);
   const correlation = getPearson(points);
-  const fit = getLinearFit(points);
-  const line = fit ? {
-    x1: scaleX(xLow),
-    y1: clamp(scaleY(fit.slope * xLow + fit.intercept), plot.top, plot.bottom),
-    x2: scaleX(xHigh),
-    y2: clamp(scaleY(fit.slope * xHigh + fit.intercept), plot.top, plot.bottom)
-  } : null;
   const flowMedian = getMedian(items.filter((item) => item.hasMarket).map((item) => item.taoFlow));
   const burnMedian = getMedian(items.map((item) => item.burnEmissionPct).filter(Number.isFinite));
   const emissionMedian = getMedian(items.map((item) => item.subnetEmissionPct).filter(Number.isFinite));
@@ -1163,86 +1168,90 @@ function renderAnalytics(sourceItems) {
   const topHype = [...sourceItems].sort((a, b) => b.hypeScore - a.hypeScore || b.total - a.total)[0];
   const rLabel = correlation == null ? "n/a" : correlation.toFixed(2);
   const r2Label = correlation == null ? "n/a" : formatPercent(correlation * correlation * 100, 0);
+  const plotPoints = points.map((point) => {
+    const title = `${getBubbleLabel(point.item)} ${getTickerName(point.item)}`;
+    const xValue = xDefinition.format(point.x);
+    const yValue = yDefinition.format(point.y);
+    const zValue = zDefinition.format(point.z);
+    const sizeValue = point.sizeRaw == null ? "n/a" : sizeDefinition.format(point.sizeRaw);
+    const radius = getScaledRadius(point.size, 0.052, 0.18, sizeValues);
+
+    return {
+      key: point.item.key,
+      subnet: point.item.subnet,
+      ticker: title,
+      label: getBubbleLabel(point.item),
+      tone: getTone(point.item),
+      selected: point.item.key === state.selectedKey,
+      x: scaleAxisUnit(point.x, xRange),
+      y: scaleAxisUnit(point.y, yRange),
+      z: scaleAxisUnit(point.z, zRange),
+      radius,
+      xLabel: xDefinition.label,
+      yLabel: yDefinition.label,
+      zLabel: zDefinition.label,
+      sizeLabel: sizeDefinition.label,
+      xValue,
+      yValue,
+      zValue,
+      sizeValue,
+      meta: `${formatNumber(point.item.up)} up · ${formatNumber(point.item.down)} down · ${formatSignal(point.item)} · TAO Flow ${formatSignedTao(point.item.taoFlow, 2)} · Emission ${formatSubnetEmission(point.item)} · Burn ${formatBurnEmission(point.item)} · Hype ${formatNumber(point.item.hypeScore)}`
+    };
+  });
 
   scatterPlotEl.innerHTML = `
-    <svg class="scatter-svg" viewBox="0 0 1000 560" role="img" aria-label="${escapeHtml(xDefinition.label)} and ${escapeHtml(yDefinition.label)} correlation chart">
-      <g class="scatter-grid" aria-hidden="true">
-        ${[0, 0.25, 0.5, 0.75, 1].map((step) => `
-          <line x1="${plot.left}" x2="${plot.right}" y1="${plot.top + (plot.bottom - plot.top) * step}" y2="${plot.top + (plot.bottom - plot.top) * step}"></line>
-          <line y1="${plot.top}" y2="${plot.bottom}" x1="${plot.left + (plot.right - plot.left) * step}" x2="${plot.left + (plot.right - plot.left) * step}"></line>
-        `).join("")}
-      </g>
-      ${line ? `<line class="trend-line" x1="${line.x1}" y1="${line.y1}" x2="${line.x2}" y2="${line.y2}"></line>` : ""}
-      ${points.map((point) => {
-        const radius = getScaledRadius(point.z, 4.8, 18, zValues);
-        const cx = scaleX(point.x);
-        const cy = scaleY(point.y);
-        const title = `${getBubbleLabel(point.item)} ${getTickerName(point.item)}`;
-        const xValue = xDefinition.format(point.x);
-        const yValue = yDefinition.format(point.y);
-        const zValue = point.zRaw == null ? "n/a" : zDefinition.format(point.zRaw);
-        const meta = `${formatNumber(point.item.up)} up · ${formatNumber(point.item.down)} down · ${formatSignal(point.item)} · TAO Flow ${formatSignedTao(point.item.taoFlow, 2)} · Emission ${formatSubnetEmission(point.item)} · Burn ${formatBurnEmission(point.item)} · Hype ${formatNumber(point.item.hypeScore)}`;
-        const selected = point.item.key === state.selectedKey ? " is-selected" : "";
-        return `
-          <g
-            class="scatter-pin ${getTone(point.item)}${selected}"
-            tabindex="0"
-            role="button"
-            data-key="${escapeHtml(point.item.key)}"
-            data-subnet="${escapeHtml(point.item.subnet)}"
-            data-ticker="${escapeHtml(title)}"
-            data-x-label="${escapeHtml(xDefinition.label)}"
-            data-x-value="${escapeHtml(xValue)}"
-            data-y-label="${escapeHtml(yDefinition.label)}"
-            data-y-value="${escapeHtml(yValue)}"
-            data-z-label="${escapeHtml(zDefinition.label)}"
-            data-z-value="${escapeHtml(zValue)}"
-            data-meta="${escapeHtml(meta)}"
-            aria-label="${escapeHtml(`${title}: ${xDefinition.label} ${xValue}, ${yDefinition.label} ${yValue}, Z ${zDefinition.label} ${zValue}`)}"
-            transform="translate(${cx} ${cy})"
-          >
-            <circle class="scatter-hit" r="${Math.max(radius + 10, 15)}"></circle>
-            <circle class="scatter-point" r="${radius}"></circle>
-            <text class="scatter-pin-label" y="${-radius - 8}">${escapeHtml(getBubbleLabel(point.item))}</text>
-          </g>
-        `;
-      }).join("")}
-      <text class="axis-label x-label" x="500" y="548">${escapeHtml(xDefinition.label)}</text>
-      <text class="axis-label y-label" x="18" y="282" transform="rotate(-90 18 282)">${escapeHtml(yDefinition.label)}</text>
-      <text class="axis-tick" x="${plot.left}" y="532">${escapeHtml(xDefinition.format(minX))}</text>
-      <text class="axis-tick end" x="${plot.right}" y="532">${escapeHtml(xDefinition.format(maxX))}</text>
-      <text class="axis-tick" x="46" y="${plot.bottom}">${escapeHtml(yDefinition.format(minY))}</text>
-      <text class="axis-tick" x="46" y="${plot.top + 4}">${escapeHtml(yDefinition.format(maxY))}</text>
-    </svg>
-    <div class="z-scale" aria-hidden="true">
-      <span>Z ${escapeHtml(zDefinition.label)}</span>
-      <i class="z-dot small"></i>
-      <i class="z-dot medium"></i>
-      <i class="z-dot large"></i>
+    <div class="three-lab" role="img" aria-label="${escapeHtml(`${xDefinition.label}, ${yDefinition.label}, and ${zDefinition.label} 3D subnet lab`)}">
+      <div class="three-hud" aria-hidden="true">
+        <span><b>X</b>${escapeHtml(xDefinition.label)}</span>
+        <span><b>Y</b>${escapeHtml(yDefinition.label)}</span>
+        <span><b>Z</b>${escapeHtml(zDefinition.label)}</span>
+        <span><b>Size</b>${escapeHtml(sizeDefinition.label)}</span>
+        <span><b>Color</b>Vote tone</span>
+      </div>
+      <div class="three-scene" data-three-scene><p class="empty-state three-loading">Loading 3D lab.</p></div>
+      <div class="three-tooltip" data-three-tooltip hidden></div>
     </div>
-    <div class="scatter-tooltip" hidden></div>
   `;
 
-  const topZ = points
-    .filter((point) => Number.isFinite(point.z))
-    .sort((a, b) => b.z - a.z)[0];
-  const topZLabel = topZ
-    ? `${getBubbleLabel(topZ.item)} ${topZ.zRaw == null ? "n/a" : zDefinition.format(topZ.zRaw)}`
+  const topSize = points
+    .filter((point) => Number.isFinite(point.size))
+    .sort((a, b) => b.size - a.size)[0];
+  const topSizeLabel = topSize
+    ? `${getBubbleLabel(topSize.item)} ${topSize.sizeRaw == null ? "n/a" : sizeDefinition.format(topSize.sizeRaw)}`
     : "n/a";
+  const analyticsPayload = {
+    axes: {
+      x: { key: state.axisX, label: xDefinition.label, min: xDefinition.format(xRange.min), max: xDefinition.format(xRange.max) },
+      y: { key: state.axisY, label: yDefinition.label, min: yDefinition.format(yRange.min), max: yDefinition.format(yRange.max) },
+      z: { key: state.axisZ, label: zDefinition.label, min: zDefinition.format(zRange.min), max: zDefinition.format(zRange.max) },
+      size: {
+        key: state.axisSize,
+        label: sizeDefinition.label,
+        min: sizeValues.length ? sizeDefinition.format(Math.min(...sizeValues)) : "n/a",
+        max: sizeValues.length ? sizeDefinition.format(Math.max(...sizeValues)) : "n/a"
+      },
+      color: { label: "Vote tone", min: "Bunk", max: "Legit" }
+    },
+    selectedKey: state.selectedKey,
+    points: plotPoints
+  };
+
+  window.THUMBSFLOW_3D_PAYLOAD = analyticsPayload;
+  window.dispatchEvent(new CustomEvent("thumbsflow:analytics3d", { detail: analyticsPayload }));
 
   analyticsStatsEl.innerHTML = `
     <span><strong>${rLabel}</strong> Pearson r</span>
     <span><strong>${r2Label}</strong> explained variance</span>
-    <span><strong>${formatNumber(points.length)}</strong> plotted subnets</span>
+    <span><strong>${formatNumber(points.length)}</strong> 3D plotted</span>
     <span><strong>${escapeHtml(zDefinition.label)}</strong> Z axis</span>
-    <span><strong>${escapeHtml(topZLabel)}</strong> biggest Z</span>
+    <span><strong>${escapeHtml(sizeDefinition.label)}</strong> size axis</span>
+    <span><strong>${escapeHtml(topSizeLabel)}</strong> biggest size</span>
     <span><strong>${highFlowLegit}</strong> high-flow legit</span>
     <span><strong>${highFlowBunk}</strong> high-flow bunk</span>
     <span><strong>${highBurnBunk}</strong> high-burn bunk</span>
     <span><strong>${highEmissionLegit}</strong> high-emission legit</span>
     <span><strong>${highEmissionBunk}</strong> high-emission bunk</span>
     <span><strong>${topHype ? `${getBubbleLabel(topHype)} ${formatNumber(topHype.hypeScore)}` : "n/a"}</strong> top hype</span>
-    <span><strong>${formatNumber(sourceItems.filter((item) => item.total === 0).length)}</strong> empty visible</span>
   `;
 }
 
@@ -1982,6 +1991,7 @@ axisButtons.forEach((button) => {
     if (axis === "x") state.axisX = button.dataset.metric;
     if (axis === "y") state.axisY = button.dataset.metric;
     if (axis === "z") state.axisZ = button.dataset.metric;
+    if (axis === "size") state.axisSize = button.dataset.metric;
 
     axisButtons
       .filter((current) => current.dataset.axis === axis)
@@ -2194,6 +2204,12 @@ scatterPlotEl?.addEventListener("click", (event) => {
 
   state.selectedKey = pin.dataset.key;
   renderViews();
+});
+
+window.addEventListener("thumbsflow:select", (event) => {
+  const key = event.detail?.key;
+  if (!key) return;
+  selectItem(key, { layout: false });
 });
 
 leaderColumnsEl?.addEventListener("click", (event) => {

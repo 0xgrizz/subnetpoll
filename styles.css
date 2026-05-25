@@ -2161,10 +2161,6 @@ input:focus,
   background: #0b1019;
 }
 
-.analytics-controls .axis-control:nth-child(3) {
-  grid-column: 1 / -1;
-}
-
 .axis-control {
   display: grid;
   gap: 7px;
@@ -2189,6 +2185,149 @@ input:focus,
     linear-gradient(90deg, rgba(255, 255, 255, 0.026) 1px, transparent 1px),
     #05080e;
   background-size: 40px 40px;
+}
+
+.scatter-plot.is-three {
+  padding: 0;
+}
+
+.three-lab {
+  position: relative;
+  display: grid;
+  grid-template-rows: auto minmax(280px, 1fr);
+  width: 100%;
+  min-height: var(--analytics-panel-height);
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 48% 18%, rgba(101, 168, 255, 0.16), transparent 32%),
+    radial-gradient(circle at 80% 78%, rgba(255, 171, 71, 0.1), transparent 34%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent),
+    #05080e;
+}
+
+.three-scene {
+  position: relative;
+  min-height: calc(var(--analytics-panel-height) - 78px);
+  cursor: grab;
+  touch-action: none;
+}
+
+.three-scene canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.three-lab.is-hovering-point .three-scene {
+  cursor: pointer;
+}
+
+.three-scene:active {
+  cursor: grabbing;
+}
+
+.three-loading {
+  margin: 80px auto 0;
+}
+
+.three-hud {
+  position: relative;
+  z-index: 3;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 6px;
+  padding: 12px 12px 0;
+  pointer-events: none;
+}
+
+.three-hud span {
+  display: grid;
+  gap: 2px;
+  min-height: 42px;
+  padding: 7px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  background: rgba(7, 11, 18, 0.72);
+  color: var(--ink);
+  font-size: 0.74rem;
+  font-weight: 900;
+  line-height: 1.1;
+  overflow-wrap: anywhere;
+}
+
+.three-hud b {
+  color: var(--amber);
+  font-size: 0.66rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.three-hud em {
+  color: var(--muted);
+  font-style: normal;
+  font-size: 0.66rem;
+}
+
+.three-tooltip {
+  position: absolute;
+  z-index: 6;
+  display: grid;
+  gap: 6px;
+  width: min(300px, calc(100% - 20px));
+  padding: 10px;
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  background: rgba(7, 11, 18, 0.96);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.38);
+  color: var(--ink);
+  pointer-events: none;
+}
+
+.three-tooltip[hidden] {
+  display: none;
+}
+
+.three-tooltip strong,
+.three-tooltip span,
+.three-tooltip small {
+  overflow-wrap: anywhere;
+}
+
+.three-tooltip strong {
+  font-size: 0.96rem;
+}
+
+.three-tooltip span {
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.three-tooltip div {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+}
+
+.three-tooltip em {
+  color: var(--muted);
+  font-style: normal;
+  font-size: 0.75rem;
+  font-weight: 850;
+}
+
+.three-tooltip b {
+  text-align: right;
+  font-size: 0.82rem;
+}
+
+.three-tooltip small {
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 850;
+  line-height: 1.35;
 }
 
 .scatter-svg {
@@ -2664,6 +2803,10 @@ input:focus,
     text-align: left;
   }
 
+  .three-hud {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .board-head {
     display: grid;
     align-items: start;
@@ -2722,6 +2865,17 @@ input:focus,
   .site-footer {
     display: grid;
     justify-content: start;
+  }
+
+  .three-hud {
+    gap: 4px;
+    padding: 8px 8px 0;
+  }
+
+  .three-hud span {
+    min-height: 36px;
+    padding: 6px;
+    font-size: 0.68rem;
   }
 }
 

@@ -5,7 +5,7 @@ Public static dashboard for the Discord prompt:
 > Miners, thumbs up 👍 if this subnet is legit and 👎 if this subnet is bunk.
 
 Open `index.html` in a browser to see the dashboard. It reads `data.js`, so it also works from `file://` without a build step.
-The page also reads `market-data.js` for current Taostats subnet market metrics: TAO Flow, emission share, and incentive burn.
+The page also reads `market-data.js` for current Taostats subnet market metrics: TAO Flow, emission share, and incentive burn. The Correlation Lab renders those metrics as a real 3D WebGL scene: X/Y/Z position, vote-tone color, and selectable point size.
 
 ## Public Release
 

@@ -19,10 +19,11 @@
     <meta name="twitter:image" content="https://thumbsflow.io/og-card.svg">
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
     <link rel="manifest" href="site.webmanifest">
-    <link rel="stylesheet" href="styles.css?v=34">
-    <script src="data.js?v=34" defer></script>
-    <script src="market-data.js?v=34" defer></script>
-    <script src="app.js?v=34" defer></script>
+    <link rel="stylesheet" href="styles.css?v=35">
+    <script src="data.js?v=35" defer></script>
+    <script src="market-data.js?v=35" defer></script>
+    <script type="module" src="lab-3d.mjs?v=35"></script>
+    <script src="app.js?v=35" defer></script>
   </head>
   <body>
     <a class="skip-link" href="#bubbleMap">Skip to bubble map</a>
@@ -182,7 +183,7 @@
             <div class="board-head">
               <div>
                 <p class="eyebrow">Correlation lab</p>
-                <h2>Thumbs × TAO Flow × Emission</h2>
+                <h2>3D Thumbs × TAO Flow × Emission</h2>
               </div>
               <p class="analytics-summary" id="analyticsSummary"></p>
             </div>
@@ -217,14 +218,27 @@
               <div class="axis-control">
                 <span>Z axis</span>
                 <div class="axis-buttons" role="group" aria-label="Select Z axis">
-                  <button class="axis-chip is-active" type="button" data-axis="z" data-metric="thumbs" aria-pressed="true">Thumbs</button>
+                  <button class="axis-chip" type="button" data-axis="z" data-metric="thumbs" aria-pressed="false">Thumbs</button>
                   <button class="axis-chip" type="button" data-axis="z" data-metric="support" aria-pressed="false">Legit %</button>
                   <button class="axis-chip" type="button" data-axis="z" data-metric="bunk" aria-pressed="false">Bunk %</button>
                   <button class="axis-chip" type="button" data-axis="z" data-metric="hype" aria-pressed="false">Hype</button>
                   <button class="axis-chip" type="button" data-axis="z" data-metric="tao-flow" aria-pressed="false">TAO Flow</button>
-                  <button class="axis-chip" type="button" data-axis="z" data-metric="emission-share" aria-pressed="false">Emission %</button>
+                  <button class="axis-chip is-active" type="button" data-axis="z" data-metric="emission-share" aria-pressed="true">Emission %</button>
                   <button class="axis-chip" type="button" data-axis="z" data-metric="burn-emission" aria-pressed="false">Burn %</button>
                   <button class="axis-chip" type="button" data-axis="z" data-metric="burn-cost" aria-pressed="false">Burn cost</button>
+                </div>
+              </div>
+              <div class="axis-control">
+                <span>Size</span>
+                <div class="axis-buttons" role="group" aria-label="Select size variable">
+                  <button class="axis-chip is-active" type="button" data-axis="size" data-metric="thumbs" aria-pressed="true">Thumbs</button>
+                  <button class="axis-chip" type="button" data-axis="size" data-metric="support" aria-pressed="false">Legit %</button>
+                  <button class="axis-chip" type="button" data-axis="size" data-metric="bunk" aria-pressed="false">Bunk %</button>
+                  <button class="axis-chip" type="button" data-axis="size" data-metric="hype" aria-pressed="false">Hype</button>
+                  <button class="axis-chip" type="button" data-axis="size" data-metric="tao-flow" aria-pressed="false">TAO Flow</button>
+                  <button class="axis-chip" type="button" data-axis="size" data-metric="emission-share" aria-pressed="false">Emission %</button>
+                  <button class="axis-chip" type="button" data-axis="size" data-metric="burn-emission" aria-pressed="false">Burn %</button>
+                  <button class="axis-chip" type="button" data-axis="size" data-metric="burn-cost" aria-pressed="false">Burn cost</button>
                 </div>
               </div>
             </div>
