@@ -1395,17 +1395,14 @@ function getConfidenceLabel(item) {
   return item.total > 0 ? `score ${formatRatio(getDominantScore(item))}` : "no thumbs";
 }
 
-function renderLeaderColumnItem(item, index, mode, maxValue) {
+function renderLeaderColumnItem(item, index, mode) {
   const isUp = mode === "up";
   const primary = isUp ? item.up : item.down;
   const secondary = isUp ? item.down : item.up;
-  const ratio = isUp ? getLegitRatio(item) : getBunkRatio(item);
   const label = isUp ? "up" : "down";
   const otherLabel = isUp ? "down" : "up";
   const selected = item.key === state.selectedKey ? " is-selected" : "";
   const podium = index < LEADER_LIMIT ? " is-podium" : "";
-  const volume = maxValue > 0 ? primary / maxValue * 100 : 0;
-  const tone = isUp ? "legit" : "bunk";
 
   return `
     <article
@@ -1413,7 +1410,6 @@ function renderLeaderColumnItem(item, index, mode, maxValue) {
       data-key="${escapeHtml(item.key)}"
       role="button"
       tabindex="0"
-      style="--leader-volume: ${volume}%;"
       aria-label="${escapeHtml(item.subnet)} has ${formatNumber(primary)} thumbs ${label} and ${formatNumber(secondary)} thumbs ${otherLabel}."
     >
       <span class="leader-rank">#${index + 1}</span>
@@ -1432,22 +1428,12 @@ function renderLeaderColumnItem(item, index, mode, maxValue) {
         ${renderMarketTags(item, "leader")}
       </div>
       <div class="leader-footer">
-        <span class="order-value order-value-${tone}">
-          <em>${label} rank</em>
-          <b>${formatNumber(primary)} ${label} · ${formatRatio(ratio)}</b>
-        </span>
-        <span class="leader-meta">
-          <em>${formatNumber(secondary)} ${otherLabel}</em>
-          <em>${getScoreLabel(item)}</em>
-          <em>${getConfidenceLabel(item)}</em>
-        </span>
         <span class="thumb-total">
           <strong>${formatNumber(item.total)}</strong>
           <em>thumbs</em>
         </span>
         <a href="${escapeHtml(item.messageUrl)}" target="_blank" rel="noreferrer">Open</a>
       </div>
-      <span class="leader-bar" aria-hidden="true"><i></i></span>
     </article>
   `;
 }
@@ -1457,7 +1443,6 @@ function renderLeaderColumn(mode, sourceItems) {
   const columnItems = [...sourceItems]
     .filter((item) => (isUp ? item.up : item.down) > 0)
     .sort(isUp ? compareByUpCount : compareByDownCount);
-  const maxValue = Math.max(1, ...columnItems.map((item) => isUp ? item.up : item.down));
   const total = columnItems.reduce((sum, item) => sum + (isUp ? item.up : item.down), 0);
   const title = isUp ? "Thumbs up" : "Thumbs down";
   const symbol = isUp ? "👍" : "👎";
@@ -1474,7 +1459,7 @@ function renderLeaderColumn(mode, sourceItems) {
       </div>
       <div class="leader-list">
         ${columnItems.length
-          ? columnItems.map((item, index) => renderLeaderColumnItem(item, index, mode, maxValue)).join("")
+          ? columnItems.map((item, index) => renderLeaderColumnItem(item, index, mode)).join("")
           : `<p class="leader-empty">${empty}</p>`}
       </div>
     </section>
