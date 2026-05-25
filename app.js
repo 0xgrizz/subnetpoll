@@ -82,6 +82,7 @@ const state = {
   sizeBy: "votes",
   axisX: "support",
   axisY: "tao-flow",
+  axisZ: "thumbs",
   selectedKey: null
 };
 
@@ -471,6 +472,7 @@ function getSizeMetric(item) {
   if (state.sizeBy === "signal") return Math.abs(item.net);
   if (state.sizeBy === "tao-flow") return Math.abs(item.taoFlow);
   if (state.sizeBy === "emission-share") return Number.isFinite(item.subnetEmissionPct) ? item.subnetEmissionPct : 0;
+  if (state.sizeBy === "burn-emission") return Number.isFinite(item.burnEmissionPct) ? item.burnEmissionPct : 0;
   if (state.sizeBy === "hype") return item.hypeScore;
   return item.total;
 }
@@ -481,12 +483,20 @@ function getBubbleSize(item, maxMetric, width) {
   const min = compact ? BUBBLE_LAYOUT_RULES.size.min.compact : BUBBLE_LAYOUT_RULES.size.min.full;
   const max = compact ? BUBBLE_LAYOUT_RULES.size.max.compact : BUBBLE_LAYOUT_RULES.size.max.full;
   const metric = getSizeMetric(item);
-  const usesMarketSize = state.sizeBy === "tao-flow" || state.sizeBy === "emission-share";
+  const usesMarketSize = state.sizeBy === "tao-flow" || state.sizeBy === "emission-share" || state.sizeBy === "burn-emission";
 
   if ((!usesMarketSize && !item.countsKnown) || metric === 0) return emptySize;
 
   const scaled = Math.pow(metric / Math.max(maxMetric, 1), BUBBLE_LAYOUT_RULES.size.exponent);
   return Math.round(min + scaled * (max - min));
+}
+
+function getBubbleVolumeLabel(item) {
+  if (state.sizeBy === "tao-flow") return formatCompactTao(item.taoFlow);
+  if (state.sizeBy === "emission-share") return formatSubnetEmission(item, 1);
+  if (state.sizeBy === "burn-emission") return formatBurnEmission(item, 1);
+  if (state.sizeBy === "hype") return `H${formatNumber(item.hypeScore)}`;
+  return item.total > 0 ? `${formatNumber(item.total)}t` : "empty";
 }
 
 function hashUnit(value, salt = 0) {
@@ -895,6 +905,7 @@ function applySort(list) {
 
 function matchesMarketFilter(item) {
   if (state.marketFilter === "all") return true;
+  if (state.marketFilter === "matched") return item.hasMarket;
   if (state.marketFilter === "flow-positive") return item.hasMarket && item.taoFlow > 0;
   if (state.marketFilter === "flow-negative") return item.hasMarket && item.taoFlow < 0;
   if (state.marketFilter === "burn-high") {
@@ -991,6 +1002,21 @@ function getMetricValue(item, metricKey) {
   return Number.isFinite(value) ? value : null;
 }
 
+function getZScaleValue(value, metricKey) {
+  if (!Number.isFinite(value)) return null;
+  if (metricKey === "tao-flow" || metricKey === "net") return Math.abs(value);
+  return Math.max(0, value);
+}
+
+function getScaledRadius(value, min, max, values) {
+  if (!Number.isFinite(value) || !values.length) return min;
+  const low = Math.min(...values);
+  const high = Math.max(...values);
+  if (high <= low) return (min + max) / 2;
+  const normalized = clamp((value - low) / (high - low), 0, 1);
+  return min + Math.pow(normalized, 0.58) * (max - min);
+}
+
 function getPearson(points) {
   if (points.length < 3) return null;
   const meanX = points.reduce((sum, point) => sum + point.x, 0) / points.length;
@@ -1040,6 +1066,10 @@ function getScatterTooltipHtml(pin) {
       <em>${escapeHtml(pin.dataset.yLabel || "Y")}</em>
       <b>${escapeHtml(pin.dataset.yValue || "n/a")}</b>
     </div>
+    <div>
+      <em>${escapeHtml(pin.dataset.zLabel || "Z")}</em>
+      <b>${escapeHtml(pin.dataset.zValue || "n/a")}</b>
+    </div>
     <small>${escapeHtml(pin.dataset.meta || "")}</small>
   `;
 }
@@ -1076,15 +1106,21 @@ function renderAnalytics(sourceItems) {
 
   const xDefinition = metricDefinitions[state.axisX] || metricDefinitions.support;
   const yDefinition = metricDefinitions[state.axisY] || metricDefinitions["tao-flow"];
+  const zDefinition = metricDefinitions[state.axisZ] || metricDefinitions.thumbs;
   const points = sourceItems
     .map((item) => ({
       item,
       x: getMetricValue(item, state.axisX),
-      y: getMetricValue(item, state.axisY)
+      y: getMetricValue(item, state.axisY),
+      zRaw: getMetricValue(item, state.axisZ)
+    }))
+    .map((point) => ({
+      ...point,
+      z: getZScaleValue(point.zRaw, state.axisZ)
     }))
     .filter((point) => point.x != null && point.y != null);
 
-  analyticsSummaryEl.textContent = `${xDefinition.label} vs ${yDefinition.label} across ${formatNumber(points.length)} visible subnets`;
+  analyticsSummaryEl.textContent = `${xDefinition.label} vs ${yDefinition.label}, Z ${zDefinition.label} across ${formatNumber(points.length)} visible subnets`;
 
   if (points.length < 2) {
     scatterPlotEl.innerHTML = `<p class="empty-state">Not enough visible subnets for this comparison.</p>`;
@@ -1098,6 +1134,7 @@ function renderAnalytics(sourceItems) {
   const maxX = Math.max(...xValues);
   const minY = Math.min(...yValues);
   const maxY = Math.max(...yValues);
+  const zValues = points.map((point) => point.z).filter(Number.isFinite);
   const xPad = (maxX - minX || 1) * 0.08;
   const yPad = (maxY - minY || 1) * 0.12;
   const xLow = minX - xPad;
@@ -1137,12 +1174,13 @@ function renderAnalytics(sourceItems) {
       </g>
       ${line ? `<line class="trend-line" x1="${line.x1}" y1="${line.y1}" x2="${line.x2}" y2="${line.y2}"></line>` : ""}
       ${points.map((point) => {
-        const radius = Math.max(4.5, Math.min(13, Math.sqrt(point.item.total + 1) * 1.15));
+        const radius = getScaledRadius(point.z, 4.8, 18, zValues);
         const cx = scaleX(point.x);
         const cy = scaleY(point.y);
         const title = `${getBubbleLabel(point.item)} ${getTickerName(point.item)}`;
         const xValue = xDefinition.format(point.x);
         const yValue = yDefinition.format(point.y);
+        const zValue = point.zRaw == null ? "n/a" : zDefinition.format(point.zRaw);
         const meta = `${formatNumber(point.item.up)} up · ${formatNumber(point.item.down)} down · ${formatSignal(point.item)} · TAO Flow ${formatSignedTao(point.item.taoFlow, 2)} · Emission ${formatSubnetEmission(point.item)} · Burn ${formatBurnEmission(point.item)} · Hype ${formatNumber(point.item.hypeScore)}`;
         const selected = point.item.key === state.selectedKey ? " is-selected" : "";
         return `
@@ -1157,8 +1195,10 @@ function renderAnalytics(sourceItems) {
             data-x-value="${escapeHtml(xValue)}"
             data-y-label="${escapeHtml(yDefinition.label)}"
             data-y-value="${escapeHtml(yValue)}"
+            data-z-label="${escapeHtml(zDefinition.label)}"
+            data-z-value="${escapeHtml(zValue)}"
             data-meta="${escapeHtml(meta)}"
-            aria-label="${escapeHtml(`${title}: ${xDefinition.label} ${xValue}, ${yDefinition.label} ${yValue}`)}"
+            aria-label="${escapeHtml(`${title}: ${xDefinition.label} ${xValue}, ${yDefinition.label} ${yValue}, Z ${zDefinition.label} ${zValue}`)}"
             transform="translate(${cx} ${cy})"
           >
             <circle class="scatter-hit" r="${Math.max(radius + 10, 15)}"></circle>
@@ -1174,13 +1214,28 @@ function renderAnalytics(sourceItems) {
       <text class="axis-tick" x="46" y="${plot.bottom}">${escapeHtml(yDefinition.format(minY))}</text>
       <text class="axis-tick" x="46" y="${plot.top + 4}">${escapeHtml(yDefinition.format(maxY))}</text>
     </svg>
+    <div class="z-scale" aria-hidden="true">
+      <span>Z ${escapeHtml(zDefinition.label)}</span>
+      <i class="z-dot small"></i>
+      <i class="z-dot medium"></i>
+      <i class="z-dot large"></i>
+    </div>
     <div class="scatter-tooltip" hidden></div>
   `;
+
+  const topZ = points
+    .filter((point) => Number.isFinite(point.z))
+    .sort((a, b) => b.z - a.z)[0];
+  const topZLabel = topZ
+    ? `${getBubbleLabel(topZ.item)} ${topZ.zRaw == null ? "n/a" : zDefinition.format(topZ.zRaw)}`
+    : "n/a";
 
   analyticsStatsEl.innerHTML = `
     <span><strong>${rLabel}</strong> Pearson r</span>
     <span><strong>${r2Label}</strong> explained variance</span>
     <span><strong>${formatNumber(points.length)}</strong> plotted subnets</span>
+    <span><strong>${escapeHtml(zDefinition.label)}</strong> Z axis</span>
+    <span><strong>${escapeHtml(topZLabel)}</strong> biggest Z</span>
     <span><strong>${highFlowLegit}</strong> high-flow legit</span>
     <span><strong>${highFlowBunk}</strong> high-flow bunk</span>
     <span><strong>${highBurnBunk}</strong> high-burn bunk</span>
@@ -1731,13 +1786,7 @@ function renderBubbleMap(visibleItems) {
     const codeSize = Math.max(17, Math.min(34, size / 3.3));
     const volumeSize = Math.max(8, Math.min(12, size / 10));
     const support = getBubbleBackgroundSupport(item);
-    const volumeLabel = state.sizeBy === "tao-flow"
-      ? formatCompactTao(item.taoFlow)
-      : state.sizeBy === "emission-share"
-        ? formatSubnetEmission(item, 1)
-      : state.sizeBy === "hype"
-        ? `H${formatNumber(item.hypeScore)}`
-        : item.total > 0 ? `${formatNumber(item.total)}t` : "empty";
+    const volumeLabel = getBubbleVolumeLabel(item);
     const zIndex = item.key === state.selectedKey ? 20 : Math.max(1, 14 - Math.round(index / 10));
 
     const sizeClass = size < 54 ? " is-tiny" : size < 72 ? " is-small" : "";
@@ -1932,6 +1981,7 @@ axisButtons.forEach((button) => {
     const axis = button.dataset.axis;
     if (axis === "x") state.axisX = button.dataset.metric;
     if (axis === "y") state.axisY = button.dataset.metric;
+    if (axis === "z") state.axisZ = button.dataset.metric;
 
     axisButtons
       .filter((current) => current.dataset.axis === axis)
