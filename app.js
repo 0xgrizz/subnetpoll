@@ -3,6 +3,70 @@ const marketData = window.SUBNET_MARKET_DATA || {};
 const UI_LOCALE = "en-US";
 const MAX_DECIMAL_DIGITS = 2;
 const LEADER_LIMIT = 3;
+const BUBBLE_LAYOUT_RULES = Object.freeze({
+  compactWidth: 700,
+  size: {
+    empty: { compact: 26, full: 36 },
+    min: { compact: 33, full: 48 },
+    max: { compact: 74, full: 112 },
+    exponent: 0.48
+  },
+  height: {
+    few: 420,
+    base: { compact: 560, full: 560 },
+    maxCap: { compact: 820, full: 960 },
+    minCap: { compact: 460, full: 620 },
+    viewportRatio: { compact: 0.76, full: 0.86 },
+    density: { compact: 0.62, full: 0.72 }
+  },
+  placement: {
+    gap: { compact: 2, full: 5 },
+    padding: { compact: 8, full: 14 },
+    iterations: { compact: 280, full: 250 },
+    pullStart: 0.026,
+    pullEnd: 0.044,
+    collisionPush: 0.52
+  }
+});
+const BUBBLE_PHYSICS_RULES = Object.freeze({
+  mass: {
+    min: 0.7,
+    radiusBase: 34,
+    exponent: 1.42
+  },
+  spawn: {
+    topOffset: 58,
+    yJitter: 230,
+    xJitterRatio: 0.34,
+    xJitterCap: 260,
+    velocity: 4.8,
+    cascadeMs: 8,
+    cascadeCap: 720
+  },
+  motion: {
+    maxDelta: 1.75,
+    targetPull: 0.024,
+    verticalTargetPullRatio: 0.62,
+    gravity: 0.42,
+    gravityRadiusDivisor: 185,
+    airDamping: 0.9,
+    targetDamping: 0.77,
+    wallRestitution: 0.52,
+    floorRestitution: 0.46,
+    floorFriction: 0.88
+  },
+  collision: {
+    restitution: 0.34,
+    correction: 0.76
+  },
+  settle: {
+    minMs: 1250,
+    maxMs: 3200,
+    distance: 1.8,
+    velocity: 0.22
+  },
+  opacityMs: 240
+});
 const state = {
   filter: "all",
   signalFilter: "all",
@@ -375,15 +439,15 @@ function getSizeMetric(item) {
 }
 
 function getBubbleSize(item, maxMetric, width) {
-  const compact = width < 700;
-  const emptySize = compact ? 27 : 38;
-  const min = compact ? 34 : 50;
-  const max = compact ? 78 : 118;
+  const compact = width < BUBBLE_LAYOUT_RULES.compactWidth;
+  const emptySize = compact ? BUBBLE_LAYOUT_RULES.size.empty.compact : BUBBLE_LAYOUT_RULES.size.empty.full;
+  const min = compact ? BUBBLE_LAYOUT_RULES.size.min.compact : BUBBLE_LAYOUT_RULES.size.min.full;
+  const max = compact ? BUBBLE_LAYOUT_RULES.size.max.compact : BUBBLE_LAYOUT_RULES.size.max.full;
   const metric = getSizeMetric(item);
 
   if ((state.sizeBy !== "tao-flow" && !item.countsKnown) || metric === 0) return emptySize;
 
-  const scaled = Math.pow(metric / Math.max(maxMetric, 1), 0.48);
+  const scaled = Math.pow(metric / Math.max(maxMetric, 1), BUBBLE_LAYOUT_RULES.size.exponent);
   return Math.round(min + scaled * (max - min));
 }
 
@@ -411,11 +475,32 @@ function getTargetY(item, height) {
   return height * (0.44 + noise * 0.7);
 }
 
+function getViewportHeight() {
+  return Math.max(620, window.innerHeight || 720);
+}
+
+function getBubbleMapHeight(width, visibleItems, bubbleArea) {
+  const compact = width < BUBBLE_LAYOUT_RULES.compactWidth;
+  const viewportHeight = getViewportHeight();
+  const baseHeight = visibleItems.length <= 3
+    ? BUBBLE_LAYOUT_RULES.height.few
+    : compact ? BUBBLE_LAYOUT_RULES.height.base.compact : BUBBLE_LAYOUT_RULES.height.base.full;
+  const viewportMax = viewportHeight * (
+    compact ? BUBBLE_LAYOUT_RULES.height.viewportRatio.compact : BUBBLE_LAYOUT_RULES.height.viewportRatio.full
+  );
+  const maxCap = compact ? BUBBLE_LAYOUT_RULES.height.maxCap.compact : BUBBLE_LAYOUT_RULES.height.maxCap.full;
+  const minCap = compact ? BUBBLE_LAYOUT_RULES.height.minCap.compact : BUBBLE_LAYOUT_RULES.height.minCap.full;
+  const maxHeight = Math.min(maxCap, Math.max(minCap, viewportMax));
+  const density = compact ? BUBBLE_LAYOUT_RULES.height.density.compact : BUBBLE_LAYOUT_RULES.height.density.full;
+
+  return Math.round(Math.min(maxHeight, Math.max(baseHeight, bubbleArea / (width * density))));
+}
+
 function placeBubbles(bubbleItems, width, height) {
-  const compact = width < 700;
-  const gap = compact ? 2 : 5;
-  const padding = compact ? 8 : 14;
-  const iterations = compact ? 280 : 240;
+  const compact = width < BUBBLE_LAYOUT_RULES.compactWidth;
+  const gap = compact ? BUBBLE_LAYOUT_RULES.placement.gap.compact : BUBBLE_LAYOUT_RULES.placement.gap.full;
+  const padding = compact ? BUBBLE_LAYOUT_RULES.placement.padding.compact : BUBBLE_LAYOUT_RULES.placement.padding.full;
+  const iterations = compact ? BUBBLE_LAYOUT_RULES.placement.iterations.compact : BUBBLE_LAYOUT_RULES.placement.iterations.full;
   const placed = bubbleItems.map(({ item, size }, index) => {
     const radius = size / 2;
     const targetX = getTargetX(item, width, radius);
@@ -436,7 +521,9 @@ function placeBubbles(bubbleItems, width, height) {
   });
 
   for (let iteration = 0; iteration < iterations; iteration += 1) {
-    const pull = 0.026 + iteration / iterations * 0.016;
+    const progress = iteration / iterations;
+    const pull = BUBBLE_LAYOUT_RULES.placement.pullStart +
+      progress * (BUBBLE_LAYOUT_RULES.placement.pullEnd - BUBBLE_LAYOUT_RULES.placement.pullStart);
 
     placed.forEach((bubble) => {
       bubble.x += (bubble.targetX - bubble.x) * pull;
@@ -461,8 +548,8 @@ function placeBubbles(bubbleItems, width, height) {
         if (distance >= minDistance) continue;
 
         const overlap = (minDistance - distance) / distance;
-        const pushX = dx * overlap * 0.52;
-        const pushY = dy * overlap * 0.52;
+        const pushX = dx * overlap * BUBBLE_LAYOUT_RULES.placement.collisionPush;
+        const pushY = dy * overlap * BUBBLE_LAYOUT_RULES.placement.collisionPush;
         a.x -= pushX / a.weight;
         a.y -= pushY / a.weight;
         b.x += pushX / b.weight;
@@ -885,6 +972,49 @@ function getLinearFit(points) {
   return { slope, intercept: meanY - slope * meanX };
 }
 
+function getScatterTooltipHtml(pin) {
+  return `
+    <strong>${escapeHtml(pin.dataset.subnet || "Subnet")}</strong>
+    <span>${escapeHtml(pin.dataset.ticker || "")}</span>
+    <div>
+      <em>${escapeHtml(pin.dataset.xLabel || "X")}</em>
+      <b>${escapeHtml(pin.dataset.xValue || "n/a")}</b>
+    </div>
+    <div>
+      <em>${escapeHtml(pin.dataset.yLabel || "Y")}</em>
+      <b>${escapeHtml(pin.dataset.yValue || "n/a")}</b>
+    </div>
+    <small>${escapeHtml(pin.dataset.meta || "")}</small>
+  `;
+}
+
+function positionScatterTooltip(tooltip, clientX, clientY) {
+  const container = scatterPlotEl.getBoundingClientRect();
+  const tooltipRect = tooltip.getBoundingClientRect();
+  const x = clamp(clientX - container.left + 14, 10, container.width - tooltipRect.width - 10);
+  const y = clamp(clientY - container.top + 14, 10, container.height - tooltipRect.height - 10);
+  tooltip.style.left = `${x}px`;
+  tooltip.style.top = `${y}px`;
+}
+
+function showScatterTooltip(pin, event) {
+  const tooltip = scatterPlotEl?.querySelector(".scatter-tooltip");
+  if (!tooltip || !pin) return;
+  const pinRect = pin.getBoundingClientRect();
+  const clientX = event?.clientX ?? pinRect.left + pinRect.width / 2;
+  const clientY = event?.clientY ?? pinRect.top + pinRect.height / 2;
+
+  tooltip.innerHTML = getScatterTooltipHtml(pin);
+  tooltip.hidden = false;
+  positionScatterTooltip(tooltip, clientX, clientY);
+}
+
+function hideScatterTooltip() {
+  const tooltip = scatterPlotEl?.querySelector(".scatter-tooltip");
+  if (!tooltip) return;
+  tooltip.hidden = true;
+}
+
 function renderAnalytics(sourceItems) {
   if (!scatterPlotEl || !analyticsStatsEl || !analyticsSummaryEl) return;
 
@@ -949,15 +1079,33 @@ function renderAnalytics(sourceItems) {
       ${line ? `<line class="trend-line" x1="${line.x1}" y1="${line.y1}" x2="${line.x2}" y2="${line.y2}"></line>` : ""}
       ${points.map((point) => {
         const radius = Math.max(4.5, Math.min(13, Math.sqrt(point.item.total + 1) * 1.15));
+        const cx = scaleX(point.x);
+        const cy = scaleY(point.y);
+        const title = `${getBubbleLabel(point.item)} ${getTickerName(point.item)}`;
+        const xValue = xDefinition.format(point.x);
+        const yValue = yDefinition.format(point.y);
+        const meta = `${formatNumber(point.item.up)} up · ${formatNumber(point.item.down)} down · ${formatSignal(point.item)} · TAO Flow ${formatSignedTao(point.item.taoFlow, 2)} · Burn ${formatBurnEmission(point.item)} · Hype ${formatNumber(point.item.hypeScore)}`;
+        const selected = point.item.key === state.selectedKey ? " is-selected" : "";
         return `
-          <circle
-            class="scatter-point ${getTone(point.item)}"
-            cx="${scaleX(point.x)}"
-            cy="${scaleY(point.y)}"
-            r="${radius}"
+          <g
+            class="scatter-pin ${getTone(point.item)}${selected}"
+            tabindex="0"
+            role="button"
+            data-key="${escapeHtml(point.item.key)}"
+            data-subnet="${escapeHtml(point.item.subnet)}"
+            data-ticker="${escapeHtml(title)}"
+            data-x-label="${escapeHtml(xDefinition.label)}"
+            data-x-value="${escapeHtml(xValue)}"
+            data-y-label="${escapeHtml(yDefinition.label)}"
+            data-y-value="${escapeHtml(yValue)}"
+            data-meta="${escapeHtml(meta)}"
+            aria-label="${escapeHtml(`${title}: ${xDefinition.label} ${xValue}, ${yDefinition.label} ${yValue}`)}"
+            transform="translate(${cx} ${cy})"
           >
-            <title>${escapeHtml(`${getBubbleLabel(point.item)} ${getTickerName(point.item)} · ${xDefinition.label}: ${xDefinition.format(point.x)} · ${yDefinition.label}: ${yDefinition.format(point.y)} · Hype ${point.item.hypeScore}`)}</title>
-          </circle>
+            <circle class="scatter-hit" r="${Math.max(radius + 10, 15)}"></circle>
+            <circle class="scatter-point" r="${radius}"></circle>
+            <text class="scatter-pin-label" y="${-radius - 8}">${escapeHtml(getBubbleLabel(point.item))}</text>
+          </g>
         `;
       }).join("")}
       <text class="axis-label x-label" x="500" y="548">${escapeHtml(xDefinition.label)}</text>
@@ -967,6 +1115,7 @@ function renderAnalytics(sourceItems) {
       <text class="axis-tick" x="46" y="${plot.bottom}">${escapeHtml(yDefinition.format(minY))}</text>
       <text class="axis-tick" x="46" y="${plot.top + 4}">${escapeHtml(yDefinition.format(maxY))}</text>
     </svg>
+    <div class="scatter-tooltip" hidden></div>
   `;
 
   analyticsStatsEl.innerHTML = `
@@ -1222,6 +1371,9 @@ function animateBubblePhysics(placements, width, height, shouldAnimate) {
   cancelAnimationFrame(bubblePhysicsFrame);
   bubblePhysicsGeneration += 1;
   const generation = bubblePhysicsGeneration;
+  const compact = width < BUBBLE_LAYOUT_RULES.compactWidth;
+  const padding = compact ? BUBBLE_LAYOUT_RULES.placement.padding.compact : BUBBLE_LAYOUT_RULES.placement.padding.full;
+  const gap = compact ? BUBBLE_LAYOUT_RULES.placement.gap.compact : BUBBLE_LAYOUT_RULES.placement.gap.full;
 
   if (!shouldAnimate || prefersReducedMotion()) {
     bubbleMapEl.classList.remove("is-physics-active");
@@ -1230,14 +1382,16 @@ function animateBubblePhysics(placements, width, height, shouldAnimate) {
   }
 
   bubbleMapEl.classList.add("is-physics-active");
-  const compact = width < 700;
-  const padding = compact ? 8 : 14;
-  const gap = compact ? 2 : 5;
   const bodies = placements.map((placement, index) => {
     const element = bubbleMapEl.querySelector(`[data-key="${CSS.escape(placement.item.key)}"]`);
     const radius = placement.radius;
+    const spawnY = -radius -
+      BUBBLE_PHYSICS_RULES.spawn.topOffset -
+      hashUnit(placement.item.key, 33) * BUBBLE_PHYSICS_RULES.spawn.yJitter;
     const startX = clamp(
-      placement.x + (hashUnit(placement.item.key, 31) - 0.5) * Math.min(width * 0.28, 220),
+      placement.x +
+        (hashUnit(placement.item.key, 31) - 0.5) *
+        Math.min(width * BUBBLE_PHYSICS_RULES.spawn.xJitterRatio, BUBBLE_PHYSICS_RULES.spawn.xJitterCap),
       radius + padding,
       width - radius - padding
     );
@@ -1245,20 +1399,23 @@ function animateBubblePhysics(placements, width, height, shouldAnimate) {
     if (element) {
       element.classList.add("is-falling");
       element.classList.remove("is-settled");
-      setBubblePosition(element, startX, -radius - 46 - hashUnit(placement.item.key, 33) * 180, 0);
+      setBubblePosition(element, startX, spawnY, 0);
     }
 
     return {
       element,
       x: startX,
-      y: -radius - 46 - hashUnit(placement.item.key, 33) * 180 - index * 1.2,
-      vx: (hashUnit(placement.item.key, 35) - 0.5) * 3.6,
+      y: spawnY - index * 1.15,
+      vx: (hashUnit(placement.item.key, 35) - 0.5) * BUBBLE_PHYSICS_RULES.spawn.velocity,
       vy: 0,
       targetX: placement.x,
       targetY: placement.y,
       radius,
-      mass: Math.max(0.72, Math.pow(radius / 34, 1.38)),
-      delay: Math.min(index * 6, 520),
+      mass: Math.max(
+        BUBBLE_PHYSICS_RULES.mass.min,
+        Math.pow(radius / BUBBLE_PHYSICS_RULES.mass.radiusBase, BUBBLE_PHYSICS_RULES.mass.exponent)
+      ),
+      delay: Math.min(index * BUBBLE_PHYSICS_RULES.spawn.cascadeMs, BUBBLE_PHYSICS_RULES.spawn.cascadeCap),
       active: false
     };
   });
@@ -1276,7 +1433,7 @@ function animateBubblePhysics(placements, width, height, shouldAnimate) {
     if (generation !== bubblePhysicsGeneration) return;
 
     const elapsed = now - startedAt;
-    const delta = Math.min((now - previous) / 16.67, 2.2);
+    const delta = Math.min((now - previous) / 16.67, BUBBLE_PHYSICS_RULES.motion.maxDelta);
     previous = now;
     let distanceTotal = 0;
     let velocityTotal = 0;
@@ -1288,13 +1445,17 @@ function animateBubblePhysics(placements, width, height, shouldAnimate) {
 
       body.active = true;
       activeCount += 1;
-      const pull = 0.022 / body.mass;
-      const gravity = 0.34 + body.radius / 230;
+      const pull = BUBBLE_PHYSICS_RULES.motion.targetPull / body.mass;
+      const gravity = BUBBLE_PHYSICS_RULES.motion.gravity +
+        body.radius / BUBBLE_PHYSICS_RULES.motion.gravityRadiusDivisor;
       const nearTarget = Math.hypot(body.targetX - body.x, body.targetY - body.y) < body.radius * 0.45;
-      const damping = Math.pow(nearTarget ? 0.74 : 0.87, delta);
+      const damping = Math.pow(
+        nearTarget ? BUBBLE_PHYSICS_RULES.motion.targetDamping : BUBBLE_PHYSICS_RULES.motion.airDamping,
+        delta
+      );
 
       body.vx += (body.targetX - body.x) * pull * delta;
-      body.vy += (gravity + (body.targetY - body.y) * pull * 0.72) * delta;
+      body.vy += (gravity + (body.targetY - body.y) * pull * BUBBLE_PHYSICS_RULES.motion.verticalTargetPullRatio) * delta;
       body.vx *= damping;
       body.vy *= damping;
       body.x += body.vx * delta;
@@ -1302,16 +1463,16 @@ function animateBubblePhysics(placements, width, height, shouldAnimate) {
 
       if (body.x < body.radius + padding) {
         body.x = body.radius + padding;
-        body.vx = Math.abs(body.vx) * 0.44;
+        body.vx = Math.abs(body.vx) * BUBBLE_PHYSICS_RULES.motion.wallRestitution;
       } else if (body.x > width - body.radius - padding) {
         body.x = width - body.radius - padding;
-        body.vx = -Math.abs(body.vx) * 0.44;
+        body.vx = -Math.abs(body.vx) * BUBBLE_PHYSICS_RULES.motion.wallRestitution;
       }
 
       if (body.y > height - body.radius - padding) {
         body.y = height - body.radius - padding;
-        body.vy = -Math.abs(body.vy) * 0.38;
-        body.vx *= 0.92;
+        body.vy = -Math.abs(body.vy) * BUBBLE_PHYSICS_RULES.motion.floorRestitution;
+        body.vx *= BUBBLE_PHYSICS_RULES.motion.floorFriction;
       }
     });
 
@@ -1341,7 +1502,7 @@ function animateBubblePhysics(placements, width, height, shouldAnimate) {
         const inverseA = 1 / a.mass;
         const inverseB = 1 / b.mass;
         const inverseTotal = inverseA + inverseB;
-        const push = overlap / inverseTotal;
+        const push = overlap * BUBBLE_PHYSICS_RULES.collision.correction / inverseTotal;
 
         a.x -= nx * push * inverseA;
         a.y -= ny * push * inverseA;
@@ -1350,7 +1511,7 @@ function animateBubblePhysics(placements, width, height, shouldAnimate) {
 
         const relativeVelocity = (b.vx - a.vx) * nx + (b.vy - a.vy) * ny;
         if (relativeVelocity < 0) {
-          const impulse = -relativeVelocity * 0.24;
+          const impulse = -(1 + BUBBLE_PHYSICS_RULES.collision.restitution) * relativeVelocity / inverseTotal;
           a.vx -= nx * impulse * inverseA;
           a.vy -= ny * impulse * inverseA;
           b.vx += nx * impulse * inverseB;
@@ -1363,7 +1524,7 @@ function animateBubblePhysics(placements, width, height, shouldAnimate) {
       if (!body.active || !body.element) return;
       body.x = clamp(body.x, body.radius + padding, width - body.radius - padding);
       body.y = clamp(body.y, -body.radius * 2, height - body.radius - padding);
-      const opacity = Math.min(1, Math.max(0, (elapsed - body.delay) / 210));
+      const opacity = Math.min(1, Math.max(0, (elapsed - body.delay) / BUBBLE_PHYSICS_RULES.opacityMs));
       setBubblePosition(body.element, body.x, body.y, opacity);
       distanceTotal += Math.hypot(body.targetX - body.x, body.targetY - body.y);
       velocityTotal += Math.hypot(body.vx, body.vy);
@@ -1371,9 +1532,11 @@ function animateBubblePhysics(placements, width, height, shouldAnimate) {
 
     const averageDistance = activeCount ? distanceTotal / activeCount : Infinity;
     const averageVelocity = activeCount ? velocityTotal / activeCount : Infinity;
-    const settled = elapsed > 1080 && averageDistance < 1.4 && averageVelocity < 0.18;
+    const settled = elapsed > BUBBLE_PHYSICS_RULES.settle.minMs &&
+      averageDistance < BUBBLE_PHYSICS_RULES.settle.distance &&
+      averageVelocity < BUBBLE_PHYSICS_RULES.settle.velocity;
 
-    if (settled || elapsed > 2450) {
+    if (settled || elapsed > BUBBLE_PHYSICS_RULES.settle.maxMs) {
       finish();
       return;
     }
@@ -1404,11 +1567,7 @@ function renderBubbleMap(visibleItems) {
     const radius = bubble.size / 2 + 6;
     return sum + Math.PI * radius * radius;
   }, 0);
-  const compact = width < 700;
-  const baseHeight = visibleItems.length <= 3 ? 460 : compact ? 1040 : 660;
-  const maxHeight = compact ? 3000 : 1380;
-  const density = compact ? 0.28 : 0.58;
-  const height = Math.round(Math.min(maxHeight, Math.max(baseHeight, bubbleArea / (width * density))));
+  const height = getBubbleMapHeight(width, visibleItems, bubbleArea);
   const placements = placeBubbles(bubbleItems, width, height);
   const layoutSignature = [
     width,
@@ -1662,6 +1821,45 @@ rowsEl.addEventListener("click", (event) => {
   if (!row) return;
 
   state.selectedKey = row.dataset.key;
+  renderViews();
+});
+
+scatterPlotEl?.addEventListener("pointerover", (event) => {
+  const pin = event.target.closest(".scatter-pin");
+  if (!pin) return;
+  showScatterTooltip(pin, event);
+});
+
+scatterPlotEl?.addEventListener("pointermove", (event) => {
+  const pin = event.target.closest(".scatter-pin");
+  const tooltip = scatterPlotEl.querySelector(".scatter-tooltip");
+  if (!pin || !tooltip || tooltip.hidden) return;
+  positionScatterTooltip(tooltip, event.clientX, event.clientY);
+});
+
+scatterPlotEl?.addEventListener("pointerout", (event) => {
+  const pin = event.target.closest(".scatter-pin");
+  if (!pin || pin.contains(event.relatedTarget)) return;
+  hideScatterTooltip();
+});
+
+scatterPlotEl?.addEventListener("focusin", (event) => {
+  const pin = event.target.closest(".scatter-pin");
+  if (!pin) return;
+  showScatterTooltip(pin, event);
+});
+
+scatterPlotEl?.addEventListener("focusout", (event) => {
+  const pin = event.target.closest(".scatter-pin");
+  if (!pin || pin.contains(event.relatedTarget)) return;
+  hideScatterTooltip();
+});
+
+scatterPlotEl?.addEventListener("click", (event) => {
+  const pin = event.target.closest(".scatter-pin");
+  if (!pin) return;
+
+  state.selectedKey = pin.dataset.key;
   renderViews();
 });
 

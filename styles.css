@@ -18,6 +18,9 @@
   --blue-soft: rgba(101, 168, 255, 0.16);
   --amber: #ffab47;
   --shadow: 0 22px 70px rgba(0, 0, 0, 0.42);
+  --leader-list-height: clamp(340px, 46vh, 540px);
+  --map-panel-height: clamp(540px, 68vh, 820px);
+  --analytics-panel-height: clamp(360px, 48vh, 480px);
   --fast: 160ms ease;
   --smooth: 520ms cubic-bezier(0.2, 0.75, 0.18, 1);
 }
@@ -219,6 +222,34 @@ h2 {
 
 .source-panel a:hover {
   text-decoration: underline;
+}
+
+.leader-list,
+.map-detail,
+.analytics-stats {
+  scrollbar-color: var(--line-strong) transparent;
+  scrollbar-width: thin;
+}
+
+.leader-list::-webkit-scrollbar,
+.map-detail::-webkit-scrollbar,
+.analytics-stats::-webkit-scrollbar {
+  width: 10px;
+}
+
+.leader-list::-webkit-scrollbar-track,
+.map-detail::-webkit-scrollbar-track,
+.analytics-stats::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.leader-list::-webkit-scrollbar-thumb,
+.map-detail::-webkit-scrollbar-thumb,
+.analytics-stats::-webkit-scrollbar-thumb {
+  border: 3px solid transparent;
+  border-radius: 999px;
+  background: var(--line-strong);
+  background-clip: content-box;
 }
 
 .control-deck,
@@ -844,7 +875,7 @@ input:focus,
 .map-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 300px;
-  min-height: 720px;
+  min-height: 0;
 }
 
 .map-shell {
@@ -911,7 +942,7 @@ input:focus,
   position: relative;
   z-index: 1;
   overflow: hidden;
-  min-height: 660px;
+  min-height: min(620px, var(--map-panel-height));
   contain: layout paint;
 }
 
@@ -1084,7 +1115,10 @@ input:focus,
   display: grid;
   align-content: start;
   gap: 12px;
-  min-height: 100%;
+  max-height: var(--map-panel-height);
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
   padding: 14px;
   border-left: 1px solid var(--line);
   background: #0b1019;
@@ -1407,6 +1441,8 @@ input:focus,
 }
 
 .leader-column {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
   min-width: 0;
   background: #0b1019;
 }
@@ -1456,6 +1492,11 @@ input:focus,
 
 .leader-list {
   display: grid;
+  align-content: start;
+  max-height: var(--leader-list-height);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
 }
 
 .leader-row {
@@ -1888,14 +1929,15 @@ input:focus,
 .analytics-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 276px;
-  min-height: 470px;
+  min-height: 0;
 }
 
 .scatter-plot {
   position: relative;
   display: grid;
   place-items: center;
-  min-height: 470px;
+  min-height: var(--analytics-panel-height);
+  overflow: hidden;
   padding: 12px;
   background:
     linear-gradient(rgba(255, 255, 255, 0.026) 1px, transparent 1px),
@@ -1907,8 +1949,8 @@ input:focus,
 .scatter-svg {
   display: block;
   width: 100%;
-  max-height: 580px;
-  min-height: 360px;
+  max-height: calc(var(--analytics-panel-height) + 80px);
+  min-height: min(340px, var(--analytics-panel-height));
 }
 
 .scatter-grid line {
@@ -1928,23 +1970,129 @@ input:focus,
   stroke: rgba(255, 255, 255, 0.78);
   stroke-width: 1.5;
   opacity: 0.86;
+  transition: filter var(--fast), opacity var(--fast), r var(--fast), stroke-width var(--fast);
 }
 
-.scatter-point.legit {
+.scatter-hit {
+  fill: transparent;
+  pointer-events: all;
+}
+
+.scatter-pin {
+  cursor: pointer;
+  outline: none;
+}
+
+.scatter-pin.legit .scatter-point {
   fill: var(--green);
 }
 
-.scatter-point.bunk {
+.scatter-pin.bunk .scatter-point {
   fill: var(--red);
 }
 
-.scatter-point.tie {
+.scatter-pin.tie .scatter-point {
   fill: var(--blue);
 }
 
-.scatter-point.quiet {
+.scatter-pin.quiet .scatter-point {
   fill: #687386;
   opacity: 0.55;
+}
+
+.scatter-pin:hover .scatter-point,
+.scatter-pin:focus-visible .scatter-point,
+.scatter-pin.is-selected .scatter-point {
+  filter: drop-shadow(0 0 12px rgba(255, 255, 255, 0.38));
+  opacity: 1;
+  stroke: #ffffff;
+  stroke-width: 3;
+}
+
+.scatter-pin.is-selected .scatter-point {
+  stroke: var(--amber);
+  stroke-width: 4;
+}
+
+.scatter-pin-label {
+  opacity: 0;
+  fill: var(--ink);
+  paint-order: stroke;
+  pointer-events: none;
+  stroke: rgba(5, 7, 12, 0.9);
+  stroke-width: 4px;
+  text-anchor: middle;
+  font-size: 15px;
+  font-weight: 950;
+  transition: opacity var(--fast);
+}
+
+.scatter-pin:hover .scatter-pin-label,
+.scatter-pin:focus-visible .scatter-pin-label,
+.scatter-pin.is-selected .scatter-pin-label {
+  opacity: 1;
+}
+
+.scatter-tooltip {
+  position: absolute;
+  z-index: 12;
+  display: grid;
+  gap: 6px;
+  width: min(280px, calc(100% - 20px));
+  padding: 10px;
+  border: 1px solid var(--line-strong);
+  border-radius: 8px;
+  background: rgba(7, 11, 18, 0.96);
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.38);
+  color: var(--ink);
+  pointer-events: none;
+}
+
+.scatter-tooltip[hidden] {
+  display: none;
+}
+
+.scatter-tooltip strong,
+.scatter-tooltip span,
+.scatter-tooltip small {
+  overflow-wrap: anywhere;
+}
+
+.scatter-tooltip strong {
+  font-size: 0.96rem;
+}
+
+.scatter-tooltip span {
+  color: var(--muted);
+  font-size: 0.74rem;
+  font-weight: 950;
+  text-transform: uppercase;
+}
+
+.scatter-tooltip div {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+}
+
+.scatter-tooltip em {
+  color: var(--muted);
+  font-style: normal;
+  font-size: 0.75rem;
+  font-weight: 850;
+}
+
+.scatter-tooltip b {
+  text-align: right;
+  font-size: 0.82rem;
+}
+
+.scatter-tooltip small {
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 850;
+  line-height: 1.35;
 }
 
 .axis-label,
@@ -1968,6 +2116,9 @@ input:focus,
   display: grid;
   align-content: start;
   gap: 8px;
+  max-height: var(--analytics-panel-height);
+  overflow-y: auto;
+  overscroll-behavior: contain;
   padding: 14px;
   border-left: 1px solid var(--line);
   background: #0b1019;
@@ -2072,6 +2223,12 @@ input:focus,
 }
 
 @media (max-width: 1180px) {
+  :root {
+    --leader-list-height: clamp(300px, 42vh, 460px);
+    --map-panel-height: clamp(500px, 64vh, 720px);
+    --analytics-panel-height: clamp(340px, 46vh, 440px);
+  }
+
   .intelligence-board {
     grid-template-columns: 1fr 1fr;
   }
@@ -2109,6 +2266,12 @@ input:focus,
 }
 
 @media (max-width: 820px) {
+  :root {
+    --leader-list-height: clamp(280px, 44vh, 420px);
+    --map-panel-height: clamp(440px, 62vh, 620px);
+    --analytics-panel-height: clamp(320px, 44vh, 400px);
+  }
+
   .app-shell {
     width: min(100% - 20px, 1480px);
     padding-top: 10px;
