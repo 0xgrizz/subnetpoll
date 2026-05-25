@@ -276,7 +276,7 @@ h2 {
 }
 
 .control-deck {
-  animation-delay: 180ms;
+  animation-delay: 165ms;
 }
 
 .hero-stats {
@@ -284,39 +284,39 @@ h2 {
 }
 
 .verdict-card {
-  animation-delay: 105ms;
+  animation-delay: 300ms;
 }
 
 .distribution-card {
-  animation-delay: 125ms;
+  animation-delay: 325ms;
 }
 
 .audit-card {
-  animation-delay: 145ms;
+  animation-delay: 350ms;
 }
 
 .signal-panel:nth-child(1) {
-  animation-delay: 250ms;
+  animation-delay: 70ms;
 }
 
 .signal-panel:nth-child(2) {
-  animation-delay: 280ms;
+  animation-delay: 100ms;
 }
 
 .signal-panel:nth-child(3) {
-  animation-delay: 310ms;
+  animation-delay: 130ms;
 }
 
 .market-board {
-  animation-delay: 220ms;
+  animation-delay: 205ms;
 }
 
 .ranking-board {
-  animation-delay: 340ms;
+  animation-delay: 250ms;
 }
 
 .analytics-board {
-  animation-delay: 70ms;
+  animation-delay: 385ms;
 }
 
 .control-deck {
