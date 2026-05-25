@@ -1384,6 +1384,17 @@ function renderLeaderBadges(item) {
   `;
 }
 
+function getScoreLabel(item) {
+  if (item.total <= 0) return "No thumbs";
+  if (item.status === "bunk") return `${formatRatio(getBunkRatio(item))} bunk`;
+  if (item.status === "tie") return "50.0% flat";
+  return `${formatRatio(getLegitRatio(item))} legit`;
+}
+
+function getConfidenceLabel(item) {
+  return item.total > 0 ? `score ${formatRatio(getDominantScore(item))}` : "no thumbs";
+}
+
 function renderLeaderColumnItem(item, index, mode, maxValue) {
   const isUp = mode === "up";
   const primary = isUp ? item.up : item.down;
@@ -1394,31 +1405,50 @@ function renderLeaderColumnItem(item, index, mode, maxValue) {
   const selected = item.key === state.selectedKey ? " is-selected" : "";
   const podium = index < LEADER_LIMIT ? " is-podium" : "";
   const volume = maxValue > 0 ? primary / maxValue * 100 : 0;
+  const tone = isUp ? "legit" : "bunk";
 
   return `
-    <button
+    <article
       class="leader-row leader-row-${mode} ${getTone(item)}${selected}${podium}"
-      type="button"
       data-key="${escapeHtml(item.key)}"
+      role="button"
+      tabindex="0"
       style="--leader-volume: ${volume}%;"
       aria-label="${escapeHtml(item.subnet)} has ${formatNumber(primary)} thumbs ${label} and ${formatNumber(secondary)} thumbs ${otherLabel}."
     >
       <span class="leader-rank">#${index + 1}</span>
       <div class="leader-name">
         <strong>${escapeHtml(item.subnet)}</strong>
-        <em>${escapeHtml(getTickerName(item))}</em>
+        <em>#${escapeHtml(item.channelName)} · ${escapeHtml(getTickerName(item))}</em>
         ${renderLeaderBadges(item)}
       </div>
+      ${renderStatus(item.status)}
       <span class="leader-count">
         <strong>${formatNumber(primary)}</strong>
         <em>${label}</em>
       </span>
-      <span class="leader-meta">
-        <em>${formatNumber(secondary)} ${otherLabel}</em>
-        <em>${formatRatio(ratio)} ${label}</em>
-      </span>
+      <div class="leader-split">
+        ${renderVoteBalance(item, "leader")}
+        ${renderMarketTags(item, "leader")}
+      </div>
+      <div class="leader-footer">
+        <span class="order-value order-value-${tone}">
+          <em>${label} rank</em>
+          <b>${formatNumber(primary)} ${label} · ${formatRatio(ratio)}</b>
+        </span>
+        <span class="leader-meta">
+          <em>${formatNumber(secondary)} ${otherLabel}</em>
+          <em>${getScoreLabel(item)}</em>
+          <em>${getConfidenceLabel(item)}</em>
+        </span>
+        <span class="thumb-total">
+          <strong>${formatNumber(item.total)}</strong>
+          <em>thumbs</em>
+        </span>
+        <a href="${escapeHtml(item.messageUrl)}" target="_blank" rel="noreferrer">Open</a>
+      </div>
       <span class="leader-bar" aria-hidden="true"><i></i></span>
-    </button>
+    </article>
   `;
 }
 
@@ -1870,22 +1900,24 @@ function renderBubbleMap(visibleItems) {
 }
 
 function renderRows(visibleItems) {
-  if (rankingHeadEl) rankingHeadEl.hidden = false;
-  if (leaderColumnsEl) leaderColumnsEl.hidden = true;
-  rowsEl.hidden = false;
+  const useLeaderColumns = state.sort === "thumbs-direction";
+
+  if (rankingHeadEl) rankingHeadEl.hidden = useLeaderColumns;
+  if (leaderColumnsEl) leaderColumnsEl.hidden = !useLeaderColumns;
+  rowsEl.hidden = useLeaderColumns;
+
+  if (useLeaderColumns) {
+    rowsEl.innerHTML = "";
+    renderLeaderColumns(visibleItems);
+    emptyStateEl.hidden = visibleItems.length !== 0;
+    return;
+  }
+
   if (leaderColumnsEl) leaderColumnsEl.innerHTML = "";
 
   rowsEl.innerHTML = visibleItems.map((item, visibleIndex) => {
-    const scoreLabel = item.total > 0
-      ? item.status === "bunk"
-        ? `${formatRatio(getBunkRatio(item))} bunk`
-        : item.status === "tie"
-          ? "50.0% flat"
-          : `${formatRatio(getLegitRatio(item))} legit`
-      : "No thumbs";
-    const confidenceLabel = item.total > 0
-      ? `score ${formatRatio(getDominantScore(item))}`
-      : "no thumbs";
+    const scoreLabel = getScoreLabel(item);
+    const confidenceLabel = getConfidenceLabel(item);
     const upLeaderRank = topUpLeaderRanks.get(item.key);
     const downLeaderRank = topDownLeaderRanks.get(item.key);
     const leaderClass = `${upLeaderRank ? " is-top-up" : ""}${downLeaderRank ? " is-top-down" : ""}`;
@@ -2261,9 +2293,23 @@ window.addEventListener("thumbsflow:select", (event) => {
 });
 
 leaderColumnsEl?.addEventListener("click", (event) => {
+  if (event.target.closest("a")) return;
+
   const row = event.target.closest(".leader-row");
   if (!row) return;
 
+  state.selectedKey = row.dataset.key;
+  renderViews();
+  scrollToLab();
+});
+
+leaderColumnsEl?.addEventListener("keydown", (event) => {
+  if (event.key !== "Enter" && event.key !== " ") return;
+
+  const row = event.target.closest(".leader-row");
+  if (!row) return;
+
+  event.preventDefault();
   state.selectedKey = row.dataset.key;
   renderViews();
   scrollToLab();
