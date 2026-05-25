@@ -4,25 +4,25 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>ThumbsFlow.io</title>
-    <meta name="description" content="A public Bittensor subnet reaction dashboard matching Discord poll signals with Taostats TAO Flow and incentive burn.">
+    <meta name="description" content="A public Bittensor subnet reaction dashboard matching Discord poll signals with Taostats TAO Flow, emission share, and incentive burn.">
     <meta name="theme-color" content="#05070c">
     <link rel="canonical" href="https://thumbsflow.io/">
     <meta property="og:type" content="website">
     <meta property="og:site_name" content="ThumbsFlow.io">
     <meta property="og:title" content="ThumbsFlow.io">
-    <meta property="og:description" content="Live-style bubble screener for Bittensor subnet poll reactions, Taostats TAO Flow, and incentive burn.">
+    <meta property="og:description" content="Live-style bubble screener for Bittensor subnet poll reactions, Taostats TAO Flow, emission share, and incentive burn.">
     <meta property="og:url" content="https://thumbsflow.io/">
     <meta property="og:image" content="https://thumbsflow.io/og-card.svg">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="ThumbsFlow.io">
-    <meta name="twitter:description" content="A fast public overview of Bittensor subnet poll consensus and Taostats TAO Flow.">
+    <meta name="twitter:description" content="A fast public overview of Bittensor subnet poll consensus, Taostats TAO Flow, and emission share.">
     <meta name="twitter:image" content="https://thumbsflow.io/og-card.svg">
     <link rel="icon" href="favicon.svg" type="image/svg+xml">
     <link rel="manifest" href="site.webmanifest">
-    <link rel="stylesheet" href="styles.css?v=32">
-    <script src="data.js?v=32" defer></script>
-    <script src="market-data.js?v=32" defer></script>
-    <script src="app.js?v=32" defer></script>
+    <link rel="stylesheet" href="styles.css?v=33">
+    <script src="data.js?v=33" defer></script>
+    <script src="market-data.js?v=33" defer></script>
+    <script src="app.js?v=33" defer></script>
   </head>
   <body>
     <a class="skip-link" href="#bubbleMap">Skip to bubble map</a>
@@ -101,6 +101,7 @@
               <button class="sort-chip" type="button" data-sort="votes" aria-pressed="false">Total</button>
               <button class="sort-chip" type="button" data-sort="conviction" aria-pressed="false">Conviction</button>
               <button class="sort-chip" type="button" data-sort="tao-flow" aria-pressed="false">TAO Flow</button>
+              <button class="sort-chip" type="button" data-sort="emission-share" aria-pressed="false">Emission %</button>
               <button class="sort-chip" type="button" data-sort="burn-emission" aria-pressed="false">Burn %</button>
               <button class="sort-chip" type="button" data-sort="hype" aria-pressed="false">Hype</button>
               <button class="sort-chip" type="button" data-sort="name" aria-pressed="false">Name</button>
@@ -125,6 +126,7 @@
               <button class="market-chip is-active" type="button" data-market-filter="all" aria-pressed="true">All</button>
               <button class="market-chip" type="button" data-market-filter="flow-positive" aria-pressed="false">Flow +</button>
               <button class="market-chip" type="button" data-market-filter="flow-negative" aria-pressed="false">Flow -</button>
+              <button class="market-chip" type="button" data-market-filter="emission-high" aria-pressed="false">Emission high</button>
               <button class="market-chip" type="button" data-market-filter="burn-high" aria-pressed="false">Burn high</button>
             </div>
           </div>
@@ -135,6 +137,7 @@
               <button class="size-chip is-active" type="button" data-size-by="votes" aria-pressed="true">Volume</button>
               <button class="size-chip" type="button" data-size-by="signal" aria-pressed="false">Signal</button>
               <button class="size-chip" type="button" data-size-by="tao-flow" aria-pressed="false" aria-label="Size by Taostats TAO Flow">Flow</button>
+              <button class="size-chip" type="button" data-size-by="emission-share" aria-pressed="false">Emission</button>
               <button class="size-chip" type="button" data-size-by="hype" aria-pressed="false">Hype</button>
             </div>
           </div>
@@ -154,6 +157,7 @@
                 <span><i class="legend-dot bunk"></i>Bunk share</span>
                 <span><i class="legend-dot tie"></i>Balanced</span>
                 <span><i class="legend-dot flow"></i>TAO Flow</span>
+                <span><i class="legend-dot emission"></i>Emission %</span>
                 <span><i class="legend-dot burn"></i>Incentive burn</span>
                 <span><i class="legend-dot quiet"></i>No volume</span>
               </div>
@@ -176,7 +180,7 @@
             <div class="board-head">
               <div>
                 <p class="eyebrow">Correlation lab</p>
-                <h2>Thumbs × TAO Flow × Burn</h2>
+                <h2>Thumbs × TAO Flow × Emission</h2>
               </div>
               <p class="analytics-summary" id="analyticsSummary"></p>
             </div>
@@ -189,6 +193,7 @@
                   <button class="axis-chip is-active" type="button" data-axis="x" data-metric="support" aria-pressed="true">Legit %</button>
                   <button class="axis-chip" type="button" data-axis="x" data-metric="hype" aria-pressed="false">Hype</button>
                   <button class="axis-chip" type="button" data-axis="x" data-metric="tao-flow" aria-pressed="false">TAO Flow</button>
+                  <button class="axis-chip" type="button" data-axis="x" data-metric="emission-share" aria-pressed="false">Emission %</button>
                   <button class="axis-chip" type="button" data-axis="x" data-metric="burn-emission" aria-pressed="false">Burn %</button>
                   <button class="axis-chip" type="button" data-axis="x" data-metric="burn-cost" aria-pressed="false">Burn cost</button>
                 </div>
@@ -200,6 +205,7 @@
                   <button class="axis-chip" type="button" data-axis="y" data-metric="support" aria-pressed="false">Legit %</button>
                   <button class="axis-chip" type="button" data-axis="y" data-metric="hype" aria-pressed="false">Hype</button>
                   <button class="axis-chip is-active" type="button" data-axis="y" data-metric="tao-flow" aria-pressed="true">TAO Flow</button>
+                  <button class="axis-chip" type="button" data-axis="y" data-metric="emission-share" aria-pressed="false">Emission %</button>
                   <button class="axis-chip" type="button" data-axis="y" data-metric="burn-emission" aria-pressed="false">Burn %</button>
                   <button class="axis-chip" type="button" data-axis="y" data-metric="burn-cost" aria-pressed="false">Burn cost</button>
                 </div>

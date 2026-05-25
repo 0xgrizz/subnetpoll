@@ -159,6 +159,10 @@ def fetch_taostats_pools() -> list[dict[str, Any]]:
 def build_market_item(row: dict[str, Any]) -> dict[str, Any]:
     netuid = int(row["netuid"])
     incentive_burn = finite(to_float(row.get("incentive_burn"), 0.0), 0.0) * 100
+    projected_emission = to_float(row.get("projected_emission"), None)
+    subnet_emission_pct = None
+    if projected_emission is not None:
+        subnet_emission_pct = projected_emission * 100 if abs(projected_emission) <= 1 else projected_emission
 
     return {
         "netuid": netuid,
@@ -169,7 +173,8 @@ def build_market_item(row: dict[str, Any]) -> dict[str, Any]:
         "burnEmissionPct": round(incentive_burn, 6),
         "ownerEmission": None,
         "totalNeuronEmission": rounded(to_float(row.get("emission"), None), 12),
-        "subnetEmission": rounded(to_float(row.get("projected_emission"), None), 12),
+        "subnetEmission": rounded(projected_emission, 12),
+        "subnetEmissionPct": rounded(subnet_emission_pct, 6),
         "burnCost": round(to_tao(row.get("neuron_registration_cost")), 12),
         "taoIn": round(to_tao(row.get("total_tao")), 12),
         "alphaIn": round(to_tao(row.get("alpha_in_pool")), 12),
@@ -201,6 +206,7 @@ def write_outputs(payload: dict[str, Any]) -> None:
         "ownerEmission",
         "totalNeuronEmission",
         "subnetEmission",
+        "subnetEmissionPct",
         "burnCost",
         "taoIn",
         "alphaIn",
@@ -225,6 +231,9 @@ def main() -> None:
 
     flow_blocks = [item["taoFlowBlock"] for item in items if item["taoFlowBlock"] is not None]
     burn_values = [item["burnEmissionPct"] for item in items if item["burnEmissionPct"] is not None]
+    emission_values = [
+        item["subnetEmissionPct"] for item in items if item["subnetEmissionPct"] is not None
+    ]
     positive_flow = sum(1 for item in items if item["taoFlow"] > 0)
     negative_flow = sum(1 for item in items if item["taoFlow"] < 0)
 
@@ -241,6 +250,7 @@ def main() -> None:
             "taoFlowUnit": "TAO",
             "conversion": "rao values divided by 1e9",
             "burnEmissionPct": "Taostats incentive_burn displayed as a percentage",
+            "subnetEmissionPct": "Taostats projected_emission displayed as a percentage",
         },
         "summary": {
             "subnets": len(items),
@@ -253,6 +263,13 @@ def main() -> None:
             if burn_values
             else 0,
             "maxBurnEmissionPct": round(max(burn_values), 6) if burn_values else 0,
+            "averageSubnetEmissionPct": round(
+                sum(emission_values) / len(emission_values),
+                6,
+            )
+            if emission_values
+            else 0,
+            "maxSubnetEmissionPct": round(max(emission_values), 6) if emission_values else 0,
         },
         "items": items,
     }

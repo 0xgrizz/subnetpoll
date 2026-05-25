@@ -211,19 +211,29 @@ function getSectorName(subnetNumber) {
   return "Subnets 3";
 }
 
+function normalizeSubnetEmissionPct(value, fallbackValue = null) {
+  const number = Number(value);
+  if (Number.isFinite(number)) return number;
+  const fallback = Number(fallbackValue);
+  if (Number.isFinite(fallback)) return Math.abs(fallback) <= 1 ? fallback * 100 : fallback;
+  return null;
+}
+
 function normalizeMarketRow(row) {
   if (!row) return null;
   const netuid = Number(row.netuid);
   if (!Number.isFinite(netuid)) return null;
   const taoFlow = Number(row.taoFlow);
   const burnEmissionPct = Number(row.burnEmissionPct);
+  const subnetEmission = Number(row.subnetEmission);
 
   return {
     ...row,
     netuid,
     taoFlow: Number.isFinite(taoFlow) ? taoFlow : 0,
     burnEmissionPct: Number.isFinite(burnEmissionPct) ? burnEmissionPct : null,
-    subnetEmission: Number(row.subnetEmission),
+    subnetEmission: Number.isFinite(subnetEmission) ? subnetEmission : null,
+    subnetEmissionPct: normalizeSubnetEmissionPct(row.subnetEmissionPct, row.subnetEmission),
     burnCost: Number(row.burnCost),
     taoIn: Number(row.taoIn),
     alphaIn: Number(row.alphaIn),
@@ -289,7 +299,8 @@ function normalizeItem(item, index) {
     market,
     hasMarket: Boolean(market),
     taoFlow: market?.taoFlow ?? 0,
-    burnEmissionPct: market?.burnEmissionPct ?? null
+    burnEmissionPct: market?.burnEmissionPct ?? null,
+    subnetEmissionPct: market?.subnetEmissionPct ?? null
   };
 }
 
@@ -385,10 +396,22 @@ function getBurnEmissionValue(item) {
   return Number.isFinite(item.burnEmissionPct) ? item.burnEmissionPct : -Infinity;
 }
 
+function formatSubnetEmission(item, digits = 2) {
+  if (!Number.isFinite(item.subnetEmissionPct)) return "n/a";
+  return formatPercent(item.subnetEmissionPct, digits);
+}
+
+function getSubnetEmissionValue(item) {
+  return Number.isFinite(item.subnetEmissionPct) ? item.subnetEmissionPct : -Infinity;
+}
+
 function getMarketSummary() {
   const marketItems = items.filter((item) => item.hasMarket);
   const burnValues = marketItems
     .map((item) => item.burnEmissionPct)
+    .filter(Number.isFinite);
+  const subnetEmissionValues = marketItems
+    .map((item) => item.subnetEmissionPct)
     .filter(Number.isFinite);
   const netFlow = marketItems.reduce((sum, item) => sum + item.taoFlow, 0);
   const positiveFlow = marketItems.filter((item) => item.taoFlow > 0).length;
@@ -400,8 +423,12 @@ function getMarketSummary() {
     positiveFlow,
     negativeFlow,
     burnValues,
+    subnetEmissionValues,
     averageBurnEmissionPct: burnValues.length
       ? burnValues.reduce((sum, value) => sum + value, 0) / burnValues.length
+      : 0,
+    averageSubnetEmissionPct: subnetEmissionValues.length
+      ? subnetEmissionValues.reduce((sum, value) => sum + value, 0) / subnetEmissionValues.length
       : 0
   };
 }
@@ -443,6 +470,7 @@ function getTickerName(item) {
 function getSizeMetric(item) {
   if (state.sizeBy === "signal") return Math.abs(item.net);
   if (state.sizeBy === "tao-flow") return Math.abs(item.taoFlow);
+  if (state.sizeBy === "emission-share") return Number.isFinite(item.subnetEmissionPct) ? item.subnetEmissionPct : 0;
   if (state.sizeBy === "hype") return item.hypeScore;
   return item.total;
 }
@@ -453,8 +481,9 @@ function getBubbleSize(item, maxMetric, width) {
   const min = compact ? BUBBLE_LAYOUT_RULES.size.min.compact : BUBBLE_LAYOUT_RULES.size.min.full;
   const max = compact ? BUBBLE_LAYOUT_RULES.size.max.compact : BUBBLE_LAYOUT_RULES.size.max.full;
   const metric = getSizeMetric(item);
+  const usesMarketSize = state.sizeBy === "tao-flow" || state.sizeBy === "emission-share";
 
-  if ((state.sizeBy !== "tao-flow" && !item.countsKnown) || metric === 0) return emptySize;
+  if ((!usesMarketSize && !item.countsKnown) || metric === 0) return emptySize;
 
   const scaled = Math.pow(metric / Math.max(maxMetric, 1), BUBBLE_LAYOUT_RULES.size.exponent);
   return Math.round(min + scaled * (max - min));
@@ -715,6 +744,10 @@ function renderIntelligence() {
   const highBurnCount = marketSummary.marketItems
     .filter((item) => Number.isFinite(item.burnEmissionPct) && item.burnEmissionPct >= burnHighThreshold)
     .length;
+  const emissionHighThreshold = getQuantile(marketSummary.subnetEmissionValues, 0.75);
+  const highEmissionCount = marketSummary.marketItems
+    .filter((item) => Number.isFinite(item.subnetEmissionPct) && item.subnetEmissionPct >= emissionHighThreshold)
+    .length;
   const flowBlock = marketData.summary?.flowBlock || marketSummary.marketItems[0]?.market?.taoFlowBlock || "n/a";
   const topUp = [...items]
     .filter((item) => item.up > 0)
@@ -775,6 +808,7 @@ function renderIntelligence() {
         <span><b>${formatNumber(summary.averageVotes.toFixed(1))}</b> avg thumbs</span>
         <span><b>${formatNumber(summary.medianVotes)}</b> median thumbs</span>
         <span><b>${summary.contested}</b> contested</span>
+        <span><b>${formatPercent(marketSummary.averageSubnetEmissionPct, 2)}</b> avg emission</span>
         <span><b>${formatPercent(marketSummary.averageBurnEmissionPct, 1)}</b> avg incentive burn</span>
       </div>
     `;
@@ -795,6 +829,7 @@ function renderIntelligence() {
         <span><b>${flowBlock}</b> TAO Flow block</span>
         <span><b>${formatSignedTao(marketSummary.netFlow, 3)}</b> net TAO Flow</span>
         <span><b>${highBurnCount}</b> high incentive burn</span>
+        <span><b>${highEmissionCount}</b> high emission</span>
       </div>
       ${topCoVe ? `
         <button class="audit-focus ${getTone(topCoVe)}" type="button" data-key="${escapeHtml(topCoVe.key)}">
@@ -849,6 +884,7 @@ function applySort(list) {
     if (state.sort === "conviction") return getCoVeScore(b) - getCoVeScore(a) || b.total - a.total;
     if (state.sort === "tao-flow") return b.taoFlow - a.taoFlow || b.total - a.total;
     if (state.sort === "burn-emission") return getBurnEmissionValue(b) - getBurnEmissionValue(a) || b.total - a.total;
+    if (state.sort === "emission-share") return getSubnetEmissionValue(b) - getSubnetEmissionValue(a) || b.total - a.total;
     if (state.sort === "hype") return b.hypeScore - a.hypeScore || b.total - a.total;
     if (state.sort === "name") return a.subnet.localeCompare(b.subnet, UI_LOCALE, { numeric: true });
     return compareByThumbDirection(a, b);
@@ -866,6 +902,12 @@ function matchesMarketFilter(item) {
     return item.hasMarket &&
       Number.isFinite(item.burnEmissionPct) &&
       item.burnEmissionPct >= getQuantile(burnValues, 0.75);
+  }
+  if (state.marketFilter === "emission-high") {
+    const emissionValues = items.map((current) => current.subnetEmissionPct).filter(Number.isFinite);
+    return item.hasMarket &&
+      Number.isFinite(item.subnetEmissionPct) &&
+      item.subnetEmissionPct >= getQuantile(emissionValues, 0.75);
   }
   return item.hasMarket;
 }
@@ -929,6 +971,11 @@ const metricDefinitions = {
     label: "Incentive burn %",
     value: (item) => Number.isFinite(item.burnEmissionPct) ? item.burnEmissionPct : null,
     format: (value) => formatPercent(value, 1)
+  },
+  "emission-share": {
+    label: "Emission %",
+    value: (item) => Number.isFinite(item.subnetEmissionPct) ? item.subnetEmissionPct : null,
+    format: (value) => formatPercent(value, 2)
   },
   "burn-cost": {
     label: "Burn cost",
@@ -1070,9 +1117,12 @@ function renderAnalytics(sourceItems) {
   } : null;
   const flowMedian = getMedian(items.filter((item) => item.hasMarket).map((item) => item.taoFlow));
   const burnMedian = getMedian(items.map((item) => item.burnEmissionPct).filter(Number.isFinite));
+  const emissionMedian = getMedian(items.map((item) => item.subnetEmissionPct).filter(Number.isFinite));
   const highFlowLegit = sourceItems.filter((item) => item.taoFlow >= flowMedian && getLegitRatio(item) >= 0.6).length;
   const highFlowBunk = sourceItems.filter((item) => item.taoFlow >= flowMedian && getBunkRatio(item) >= 0.6).length;
   const highBurnBunk = sourceItems.filter((item) => Number.isFinite(item.burnEmissionPct) && item.burnEmissionPct >= burnMedian && getBunkRatio(item) >= 0.6).length;
+  const highEmissionLegit = sourceItems.filter((item) => Number.isFinite(item.subnetEmissionPct) && item.subnetEmissionPct >= emissionMedian && getLegitRatio(item) >= 0.6).length;
+  const highEmissionBunk = sourceItems.filter((item) => Number.isFinite(item.subnetEmissionPct) && item.subnetEmissionPct >= emissionMedian && getBunkRatio(item) >= 0.6).length;
   const topHype = [...sourceItems].sort((a, b) => b.hypeScore - a.hypeScore || b.total - a.total)[0];
   const rLabel = correlation == null ? "n/a" : correlation.toFixed(2);
   const r2Label = correlation == null ? "n/a" : formatPercent(correlation * correlation * 100, 0);
@@ -1093,7 +1143,7 @@ function renderAnalytics(sourceItems) {
         const title = `${getBubbleLabel(point.item)} ${getTickerName(point.item)}`;
         const xValue = xDefinition.format(point.x);
         const yValue = yDefinition.format(point.y);
-        const meta = `${formatNumber(point.item.up)} up · ${formatNumber(point.item.down)} down · ${formatSignal(point.item)} · TAO Flow ${formatSignedTao(point.item.taoFlow, 2)} · Burn ${formatBurnEmission(point.item)} · Hype ${formatNumber(point.item.hypeScore)}`;
+        const meta = `${formatNumber(point.item.up)} up · ${formatNumber(point.item.down)} down · ${formatSignal(point.item)} · TAO Flow ${formatSignedTao(point.item.taoFlow, 2)} · Emission ${formatSubnetEmission(point.item)} · Burn ${formatBurnEmission(point.item)} · Hype ${formatNumber(point.item.hypeScore)}`;
         const selected = point.item.key === state.selectedKey ? " is-selected" : "";
         return `
           <g
@@ -1134,6 +1184,8 @@ function renderAnalytics(sourceItems) {
     <span><strong>${highFlowLegit}</strong> high-flow legit</span>
     <span><strong>${highFlowBunk}</strong> high-flow bunk</span>
     <span><strong>${highBurnBunk}</strong> high-burn bunk</span>
+    <span><strong>${highEmissionLegit}</strong> high-emission legit</span>
+    <span><strong>${highEmissionBunk}</strong> high-emission bunk</span>
     <span><strong>${topHype ? `${getBubbleLabel(topHype)} ${formatNumber(topHype.hypeScore)}` : "n/a"}</strong> top hype</span>
     <span><strong>${formatNumber(sourceItems.filter((item) => item.total === 0).length)}</strong> empty visible</span>
   `;
@@ -1193,6 +1245,7 @@ function renderMarketTags(item, variant = "row") {
   return `
     <div class="market-tags market-tags-${variant}">
       <span class="market-tag flow-${getFlowTone(item)}">TAO Flow ${formatSignedTao(item.taoFlow, 4)}</span>
+      <span class="market-tag emission">Emission ${formatSubnetEmission(item)}</span>
       <span class="market-tag burn">${formatBurnEmission(item)} incentive burn</span>
       <span class="market-tag hype-${getHypeTone(item)}">Hype ${formatNumber(item.hypeScore)}</span>
     </div>
@@ -1204,6 +1257,7 @@ function renderMarketDetail(item) {
     return `
       <div class="detail-market">
         <span><strong>n/a</strong><em>TAO Flow</em></span>
+        <span><strong>n/a</strong><em>Emission share</em></span>
         <span><strong>n/a</strong><em>Incentive burn %</em></span>
         <span><strong>n/a</strong><em>Burn cost</em></span>
       </div>
@@ -1213,6 +1267,7 @@ function renderMarketDetail(item) {
   return `
     <div class="detail-market">
       <span><strong>${formatSignedTao(item.taoFlow, 4)}</strong><em>TAO Flow</em></span>
+      <span><strong>${formatSubnetEmission(item)}</strong><em>Emission share</em></span>
       <span><strong>${formatBurnEmission(item)}</strong><em>Incentive burn %</em></span>
       <span><strong>${formatTao(item.market.burnCost, 4)}</strong><em>Burn cost</em></span>
     </div>
@@ -1678,6 +1733,8 @@ function renderBubbleMap(visibleItems) {
     const support = getBubbleBackgroundSupport(item);
     const volumeLabel = state.sizeBy === "tao-flow"
       ? formatCompactTao(item.taoFlow)
+      : state.sizeBy === "emission-share"
+        ? formatSubnetEmission(item, 1)
       : state.sizeBy === "hype"
         ? `H${formatNumber(item.hypeScore)}`
         : item.total > 0 ? `${formatNumber(item.total)}t` : "empty";

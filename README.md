@@ -5,7 +5,7 @@ Public static dashboard for the Discord prompt:
 > Miners, thumbs up 👍 if this subnet is legit and 👎 if this subnet is bunk.
 
 Open `index.html` in a browser to see the dashboard. It reads `data.js`, so it also works from `file://` without a build step.
-The page also reads `market-data.js` for current Taostats subnet market metrics: TAO Flow and incentive burn.
+The page also reads `market-data.js` for current Taostats subnet market metrics: TAO Flow, emission share, and incentive burn.
 
 ## Public Release
 
@@ -52,7 +52,7 @@ That pulls the same public Taostats `/subnets` table payload used on the website
 - `exports/subnet-market-data-latest.json`
 - `exports/subnet-market-data-latest.csv`
 
-`burnEmissionPct` is Taostats `incentive_burn` displayed as a percentage. The Taostats API can be used as an alternate hosted source when a Taostats API key is available: <https://docs.taostats.io/docs/the-taostats-api>.
+`subnetEmissionPct` is Taostats `projected_emission` displayed as a percentage, and `burnEmissionPct` is Taostats `incentive_burn` displayed as a percentage. The Taostats API can be used as an alternate hosted source when a Taostats API key is available: <https://docs.taostats.io/docs/the-taostats-api>.
 
 ## Secret Safety
 

@@ -742,7 +742,7 @@ input:focus,
 }
 
 .market-toggle {
-  grid-template-columns: repeat(4, minmax(62px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(74px, 1fr));
 }
 
 .signal-toggle {
@@ -750,7 +750,7 @@ input:focus,
 }
 
 .size-toggle {
-  grid-template-columns: repeat(4, minmax(56px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(58px, 1fr));
 }
 
 .axis-buttons {
@@ -778,7 +778,9 @@ input:focus,
   font-size: 0.86rem;
   font-weight: 900;
   line-height: 1.05;
-  white-space: nowrap;
+  text-align: center;
+  white-space: normal;
+  overflow-wrap: anywhere;
   isolation: isolate;
   transition: background var(--fast), color var(--fast), border-color var(--fast), box-shadow var(--fast), transform var(--fast), filter var(--fast);
 }
@@ -875,6 +877,7 @@ input:focus,
 
 .segment[data-filter="tie"].is-active,
 .sort-chip[data-sort="tao-flow"].is-active,
+.sort-chip[data-sort="emission-share"].is-active,
 .market-chip.is-active {
   background: var(--blue);
 }
@@ -1006,6 +1009,10 @@ input:focus,
 
 .legend-dot.flow {
   background: #ffffff;
+}
+
+.legend-dot.emission {
+  background: #7dd3fc;
 }
 
 .legend-dot.burn {
@@ -1493,6 +1500,12 @@ input:focus,
   border-color: rgba(255, 171, 71, 0.28);
   background: rgba(255, 171, 71, 0.12);
   color: var(--amber);
+}
+
+.market-tag.emission {
+  border-color: rgba(101, 168, 255, 0.3);
+  background: var(--blue-soft);
+  color: var(--blue);
 }
 
 .market-tag.hype-high {
